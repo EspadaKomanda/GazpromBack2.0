@@ -1,0 +1,11 @@
+# IDEs
+.idea
+.vscode
+.vs
+
+# editors
+*.kate-swp
+
+# csharp
+bin
+obj
