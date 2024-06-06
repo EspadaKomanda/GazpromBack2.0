@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Claims;
 using AuthService.Authentication;
 using AuthService.Services.Jwt;
@@ -5,8 +6,13 @@ using BackGazprom.Database;
 using BackGazprom.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Exceptions;
+using Serilog.Sinks.OpenSearch;
 
 var builder = WebApplication.CreateBuilder(args);
+
+configureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
 
@@ -54,3 +60,29 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+void configureLogging(){
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+    var configuration = new ConfigurationBuilder()
+    .AddJsonFile("/app/appsettings.json",optional:false,reloadOnChange:true).Build();
+    Console.WriteLine(environment);
+    Console.WriteLine(configuration);
+    Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .Enrich.WithExceptionDetails()
+            .WriteTo.Debug()
+            .WriteTo.Console()
+            .WriteTo.OpenSearch(ConfigureOpenSearchSink(configuration,environment))
+            .Enrich.WithProperty("Environment",environment)
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+}
+OpenSearchSinkOptions ConfigureOpenSearchSink(IConfiguration configuration,string environment){
+    return new OpenSearchSinkOptions(new Uri(configuration["OpenSearchConfiguration:Uri"]!))
+    {
+        AutoRegisterTemplate = true,
+        IndexFormat =  $"{Assembly.GetExecutingAssembly().GetName().Name!.ToLower().Replace(".","-")}-{environment.ToLower()}-{DateTime.UtcNow:yyyy-MM-DD}",
+        NumberOfReplicas =1,
+        NumberOfShards = 1
+    };
+}
