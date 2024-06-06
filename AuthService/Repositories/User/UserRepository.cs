@@ -1,5 +1,6 @@
 using BackGazprom.Database;
 using BackGazprom.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackGazprom.Repositories;
 
@@ -7,37 +8,37 @@ public class UserRepository(ApplicationContext db) : IUserRepository
 {
     private readonly ApplicationContext _db = db;
 
-    public bool CreateUser(User user)
+    public async Task<bool> CreateUser(User user)
     {
         _db.Users.Add(user);
-        return Save();
+        return await Save();
     }
 
-    public bool UpdateUser(User user)
+    public async Task<bool> UpdateUser(User user)
     {
         _db.Users.Update(user);
-        return Save();
+        return await Save();
     }
 
-    public bool DeleteUser(User user)
+    public async Task<bool> DeleteUser(User user)
     {
         _db.Users.Remove(user);
-        return Save();
+        return await Save();
     }
 
-    public User? GetUserById(int id)
+    public async Task<User?> GetUserById(int id)
     {
-        return _db.Users.FirstOrDefault(u => u.Id == id);
+        return await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public User? GetUserByUsername(string username)
+    public async Task<User?> GetUserByUsername(string username)
     {
-        return _db.Users.FirstOrDefault(u => u.Username == username);
+        return await _db.Users.FirstOrDefaultAsync(u => u.Username == username);
     }
 
-    public User? GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmail(string email)
     {
-        return _db.Users.FirstOrDefault(u => u.Email == email);
+        return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public IQueryable<User> GetUsers()
@@ -45,8 +46,8 @@ public class UserRepository(ApplicationContext db) : IUserRepository
         return _db.Users.AsQueryable();
     }
 
-    public bool Save()
+    public async Task<bool> Save()
     {
-        return _db.SaveChanges() >= 0;
+        return await _db.SaveChangesAsync() >= 0;
     }
 }

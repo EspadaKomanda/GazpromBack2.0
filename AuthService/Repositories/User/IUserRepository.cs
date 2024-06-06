@@ -6,11 +6,11 @@ namespace BackGazprom.Repositories;
 public interface IUserRepository
 {
     public IQueryable<User> GetUsers();
-    public User? GetUserById(int id);
-    public User? GetUserByUsername(string username);
-    public User? GetUserByEmail(string email);
-    public bool CreateUser(User user);
-    public bool UpdateUser(User user);
-    public bool DeleteUser(User user);
-    public bool Save();
+    public Task<User?> GetUserById(int id);
+    public Task<User?> GetUserByUsername(string username);
+    public Task<User?> GetUserByEmail(string email);
+    public Task<bool> CreateUser(User user);
+    public Task<bool> UpdateUser(User user);
+    public Task<bool> DeleteUser(User user);
+    public Task<bool> Save();
 }
