@@ -4,6 +4,7 @@ using AuthService.Authentication;
 using AuthService.Services.Jwt;
 using BackGazprom.Database;
 using BackGazprom.Repositories;
+using BackGazprom.Services.Account;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -28,7 +29,9 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 
 // Services
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddTransient<IAccountService, AccountService>();
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()
