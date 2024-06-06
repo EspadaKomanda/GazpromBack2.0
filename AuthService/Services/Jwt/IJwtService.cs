@@ -6,6 +6,6 @@ public interface IJwtService
 {
     string GenerateAccessToken(User user);
     string GenerateRefreshToken(User user);
-    bool ValidateAccessToken(string? token);
-    Task<bool> ValidateRefreshToken(string? token);
+    Tuple<bool, string> ValidateAccessToken(string? token);
+    Task<Tuple<bool, string>> ValidateRefreshToken(string? token);
 }

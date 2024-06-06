@@ -56,13 +56,13 @@ public class JwtService(IUserRepository userRepo) : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
-    public bool ValidateAccessToken(string? token)
+    public Tuple<bool, string> ValidateAccessToken(string? token)
     {
         try
         {
             if (token == null)
             {
-                return false;
+                return new (false, "");
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Convert.FromBase64String(_secretKey);
@@ -86,24 +86,24 @@ public class JwtService(IUserRepository userRepo) : IJwtService
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
             {
-                return false;
+                return new (false, "");
             }
 
-            return true;
+            return new (true, username);
         }
         catch (Exception)
         {
-            return false;
+            return new (false, "");;
         }  
     }
 
-    public async Task<bool> ValidateRefreshToken(string? token)
+    public async Task<Tuple<bool, string>> ValidateRefreshToken(string? token)
     {
         try
         {
             if (token == null)
             {
-                return false;
+                return new (false, "");;
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Convert.FromBase64String(_secretKey);
@@ -127,27 +127,27 @@ public class JwtService(IUserRepository userRepo) : IJwtService
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")
             {
-                return false;
+                return new (false, "");
             }
 
             var user = await _userRepo.GetUserByUsername(username);
             if (user == null)
             {
-                return false;
+                return new (false, "");
             }
 
             // Проверка, что дата изменения пароля совпадает с фактической
             if (user.PasswordChangeDate.ToString() != passwordChangeDate)
             {
                 username=null;
-                return false;
+                return new (false, "");
             }
 
-            return true;
+            return new (true, username);
         }
         catch (Exception)
         {
-            return false;
+            return new (false, "");
         }
     }
 }
