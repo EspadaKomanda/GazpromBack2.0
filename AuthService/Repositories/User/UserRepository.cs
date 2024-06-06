@@ -26,7 +26,7 @@ public class UserRepository(ApplicationContext db) : IUserRepository
         return await Save();
     }
 
-    public async Task<User?> GetUserById(int id)
+    public async Task<User?> GetUserById(long id)
     {
         return await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
