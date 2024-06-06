@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AuthService.Services.Jwt;
 using BackGazprom.Database.Models;
 using BackGazprom.Models.Account.Requests;
@@ -77,9 +78,36 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         return new OkObjectResult(response);
     }
 
-    public Task<ActionResult<AccountTokensResponse>> AccountLogin(AccountLoginRequest request)
+    /// <summary>
+    /// Logs in a user with the provided username and password.
+    /// </summary>
+    /// <param name="request">The login request containing the username and password.</param>
+    /// <returns>
+    /// An asynchronous task that returns an action result.
+    /// The result is either an <see cref="OkObjectResult"/> with the account tokens response if the login is successful,
+    /// or an <see cref="UnauthorizedObjectResult"/> with an error message if the username or password is invalid.
+    /// </returns>
+    public async Task<ActionResult<AccountTokensResponse>> AccountLogin(AccountLoginRequest request)
     {
-        throw new NotImplementedException();
+        var user = await _userRepo.GetUserByUsername(request.Username);
+
+        if (user == null)
+        {
+            return new UnauthorizedObjectResult("Invalid username or password");
+        }
+
+        if (!BcryptUtils.VerifyPassword(request.Password, user.Password))
+        {
+            return new UnauthorizedObjectResult("Invalid username or password");
+        }
+
+        AccountTokensResponse response = new()
+        {
+            AccessToken = _jwtService.GenerateAccessToken(user),
+            RefreshToken = _jwtService.GenerateRefreshToken(user)
+        };
+        return new OkObjectResult(response);
+
     }
 
     public Task<ActionResult<AccountTokensResponse>> AccountRefreshToken(AccountRefreshTokenRequest request)
