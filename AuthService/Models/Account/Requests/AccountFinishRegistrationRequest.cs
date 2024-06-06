@@ -15,6 +15,7 @@ public class AccountFinishRegistrationRequest
     [ValidName]
     public string LastName { get; set; } = null!;
     [Required]
+    [ValidPassword]
     public string Password { get; set; } = null!;
     [Required]
     public string Email { get; set; } = null!;

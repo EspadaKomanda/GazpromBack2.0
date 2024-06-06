@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BackGazprom.Validation.Attributes;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackGazprom.Database.Models;
@@ -7,15 +8,15 @@ namespace BackGazprom.Database.Models;
 [Index(nameof(Email), IsUnique = true)]
 public class User {
     [Key]
-    public int Id {get;set;}
+    public long Id {get;set;}
     [Required]
-    [MinLength(3)]
+    [ValidUsername]
     public string Username {get;set;} = null!;
     [Required]
     [EmailAddress]
     public string Email {get;set;} = null!;
     [Required]
-    [MinLength(8)]
+    [ValidPassword]
     public string Password {get;set;} = null!;
     [Required]
     public DateTime RegistrationDate {get;set;}

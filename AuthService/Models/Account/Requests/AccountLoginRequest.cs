@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using BackGazprom.Validation.Attributes;
 
 namespace BackGazprom.Models.Account.Requests;
 
-public class AccountRegisterRequest
+public class AccountLoginRequest
 {
     [Required]
-    [EmailAddress]
-    [ValidEmailDomain]
     public string Email { get; set; } = null!;
+    [Required]
+    public string Password { get; set; } = null!;
 }
