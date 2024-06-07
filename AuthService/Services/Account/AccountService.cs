@@ -163,9 +163,43 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         //todo: Send email
         return new OkResult();
     }
-
-    Task<ActionResult<AccountTokensResponse>> IAccountService.AccountChangePassword(AccountChangePasswordRequest request)
+    
+    /// <summary>
+    /// Changes the password for a user.
+    /// </summary>
+    /// <param name="username">The username of the user.</param>
+    /// <param name="request">The request containing the old and new passwords.</param>
+    /// <returns>
+    /// An asynchronous task that returns an action result.
+    /// The result is either an <see cref="UnauthorizedResult"/> if the user does not exist,
+    /// a <see cref="BadRequestObjectResult"/> if the new password is the same as the old password or if the old password is incorrect,
+    /// or an <see cref="OkObjectResult"/> with the new access token and refresh token if the password is changed successfully.
+    /// </returns>
+    public async Task<ActionResult<AccountTokensResponse>> AccountChangePassword(string username, AccountChangePasswordRequest request)
     {
-        throw new NotImplementedException();
+        var user = await _userRepo.GetUserByUsername(username);
+        if (user == null)
+        {
+            return new UnauthorizedResult();
+        }
+
+        if (request.OldPassword == request.NewPassword)
+        {
+            return new BadRequestObjectResult("New and old passwords must not match.");
+        }
+
+        if (!BcryptUtils.VerifyPassword(request.OldPassword, user.Password))
+        {
+            return new BadRequestObjectResult("Incorrect old password.");
+        }
+
+        user.Password = BcryptUtils.HashPassword(request.NewPassword);
+        user.PasswordChangeDate = DateTime.Now;
+        await _userRepo.UpdateUser(user);
+        return new OkObjectResult(new AccountTokensResponse
+        {
+            AccessToken = _jwtService.GenerateAccessToken(user),
+            RefreshToken = _jwtService.GenerateRefreshToken(user)
+        });
     }
 }
