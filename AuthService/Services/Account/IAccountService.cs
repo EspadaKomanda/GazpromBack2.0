@@ -1,8 +1,8 @@
-using BackGazprom.Models.Account.Requests;
-using BackGazprom.Models.Account.Responses;
+using AuthService.Models.Account.Requests;
+using AuthService.Models.Account.Responses;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackGazprom.Services.Account;
+namespace AuthService.Services.Account;
 
 public interface IAccountService
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackGazprom.Models.Account.Requests;
+namespace AuthService.Models.Account.Requests;
 
 public class AccountLoginRequest
 {

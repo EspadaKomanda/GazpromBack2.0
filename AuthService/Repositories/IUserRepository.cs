@@ -1,7 +1,7 @@
-using BackGazprom.Database;
-using BackGazprom.Database.Models;
+using AuthService.Database;
+using AuthService.Database.Models;
 
-namespace BackGazprom.Repositories;
+namespace AuthService.Repositories;
 
 public interface IUserRepository
 {

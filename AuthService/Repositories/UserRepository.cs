@@ -1,8 +1,8 @@
-using BackGazprom.Database;
-using BackGazprom.Database.Models;
+using AuthService.Database;
+using AuthService.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackGazprom.Repositories;
+namespace AuthService.Repositories;
 
 public class UserRepository(ApplicationContext db) : IUserRepository
 {

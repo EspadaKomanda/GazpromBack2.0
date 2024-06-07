@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using BackGazprom.Utils;
+using AuthService.Utils;
 
-namespace BackGazprom.Validation.Attributes;
+namespace AuthService.Validation.Attributes;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 sealed public class ValidPassword : ValidationAttribute

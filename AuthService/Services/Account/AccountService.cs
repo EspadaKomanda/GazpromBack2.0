@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using AuthService.Services.Jwt;
-using BackGazprom.Database.Models;
-using BackGazprom.Models.Account.Requests;
-using BackGazprom.Models.Account.Responses;
-using BackGazprom.Repositories;
-using BackGazprom.Utils;
+using AuthService.Database.Models;
+using AuthService.Models.Account.Requests;
+using AuthService.Models.Account.Responses;
+using AuthService.Repositories;
+using AuthService.Utils;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackGazprom.Services.Account;
+namespace AuthService.Services.Account;
 
 public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, IJwtService jwtService) : IAccountService
 {

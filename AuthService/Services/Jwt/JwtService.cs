@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using BackGazprom.Database.Models;
-using BackGazprom.Repositories;
+using AuthService.Database.Models;
+using AuthService.Repositories;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Services.Jwt;

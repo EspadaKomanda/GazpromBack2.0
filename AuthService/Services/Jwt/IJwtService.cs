@@ -1,4 +1,4 @@
-using BackGazprom.Database.Models;
+using AuthService.Database.Models;
 
 namespace AuthService.Services.Jwt;
 

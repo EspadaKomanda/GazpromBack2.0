@@ -1,4 +1,4 @@
-namespace BackGazprom.Utils;
+namespace AuthService.Utils;
 
 public static class RockyouChecker
 {

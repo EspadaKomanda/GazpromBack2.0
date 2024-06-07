@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using BackGazprom.Database.Models;
-namespace BackGazprom.Database;
+using AuthService.Database.Models;
+namespace AuthService.Database;
 
 public class ApplicationContext : DbContext
 {

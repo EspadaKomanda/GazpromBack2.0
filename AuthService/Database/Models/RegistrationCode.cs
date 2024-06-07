@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using BackGazprom.Validation.Attributes;
+using AuthService.Validation.Attributes;
 
-namespace BackGazprom.Database.Models;
+namespace AuthService.Database.Models;
 
 public class RegistrationCode 
 {
