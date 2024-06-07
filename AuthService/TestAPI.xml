@@ -4,6 +4,43 @@
         <name>BackGazprom</name>
     </assembly>
     <members>
+        <member name="M:AuthService.Controllers.AuthController.Register(AuthService.Models.Account.Requests.AccountRegisterRequest)">
+            <summary>
+            Запрос на регисттрацию нового пользователя.
+            </summary>
+            <response code="200">Получены токены</response>
+            <response code="429">Превышено количество попыток регистрации</response>
+        </member>
+        <member name="M:AuthService.Controllers.AuthController.FinishRegistration(AuthService.Models.Account.Requests.AccountFinishRegistrationRequest)">
+            <summary>
+            Завершение регистрации нового пользователя.
+            </summary>
+            <response code="200">Получены токены</response>
+            <response code="400">Некорректные данные</response>
+            <response code="401">Неверный код регистрации</response>
+        </member>
+        <member name="M:AuthService.Controllers.AuthController.Login(AuthService.Models.Account.Requests.AccountLoginRequest)">
+            <summary>
+            Аутентификация пользователя.
+            </summary>
+            <response code="200">Получены токены</response>
+            <response code="401">Неверные данные входа</response>
+        </member>
+        <member name="M:AuthService.Controllers.AuthController.ChangePassword(AuthService.Models.Account.Requests.AccountChangePasswordRequest)">
+            <summary>
+            Изменение пароля пользователя.
+            </summary>
+            <response code="200">Получены токены</response>
+            <response code="400">Некорректные данные</response>
+            <response code="401">Неверные данные входа или неверный старый пароль</response>
+        </member>
+        <member name="M:AuthService.Controllers.AuthController.RefreshToken(AuthService.Models.Account.Requests.AccountRefreshTokenRequest)">
+            <summary>
+            Обновление токенов.
+            </summary>
+            <response code="200">Получены токены</response>
+            <response code="401">Неверные данные входа</response>
+        </member>
         <member name="M:AuthService.Services.Account.AccountService.AccountFinishRegistration(AuthService.Models.Account.Requests.AccountFinishRegistrationRequest)">
             <summary>
             Finishes the registration of a new account.

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,24 +53,68 @@ builder.Services.AddAuthentication("default")
     Console.WriteLine(options.ToString());
 });
 
+builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "AuthService",
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Аутентификация при помощи токена типа Access и Refresh.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        BearerFormat = "<type> <token>",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    var xmlFile = Path.Combine(AppContext.BaseDirectory, "TestAPI.xml");
+    if (File.Exists(xmlFile))
+    {
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+});
+
+builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "/Auth/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = "Auth";
+        c.SwaggerEndpoint("/Auth/swagger/v1/swagger.json", "v1");
+    });
+}
+else
+{
+    Console.WriteLine("Not Development");
+
 }
 
 app.Run();
 
 void configureLogging(){
-    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
     var configuration = new ConfigurationBuilder()
-    .AddJsonFile("/app/appsettings.json",optional:false,reloadOnChange:true).Build();
+    .AddJsonFile("appsettings.json",optional:false,reloadOnChange:true).Build();
     Console.WriteLine(environment);
     Console.WriteLine(configuration);
     Log.Logger = new LoggerConfiguration()
