@@ -110,9 +110,30 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
 
     }
 
-    public Task<ActionResult<AccountTokensResponse>> AccountRefreshToken(AccountRefreshTokenRequest request)
+    /// <summary>
+    /// Refreshes the access and refresh tokens for a user.
+    /// </summary>
+    /// <param name="username">The username of the user.</param>
+    /// <param name="request">The request containing the refresh token.</param>
+    /// <returns>An asynchronous task that returns an action result with the account tokens response if the refresh is successful,
+    /// or a not found result if the user is not found.</returns>
+    public async Task<ActionResult<AccountTokensResponse>> AccountRefreshToken(string username, AccountRefreshTokenRequest request)
     {
-        throw new NotImplementedException();
+        var user =  await _userRepo.GetUserByUsername(username);
+
+        // May happen if the user is deleted for some reason
+        if (user == null)
+        {
+            return new NotFoundObjectResult("User not found");
+        }
+
+        // Grant the tokens
+        AccountTokensResponse response = new()
+        {
+            AccessToken = _jwtService.GenerateAccessToken(user),
+            RefreshToken = _jwtService.GenerateRefreshToken(user)
+        };
+        return new OkObjectResult(response);
     }
 
     /// <summary>
@@ -125,7 +146,6 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// or a <see cref="StatusCodeResult"/> with a status code of 429 if the existing registration code is still valid,
     /// or a <see cref="OkResult"/> if the registration code is expired.
     /// </returns>
-    [Obsolete("Method does not implement sending emails yet! SMTP must be integrated")]
     public async Task<ActionResult> AccountRegister(AccountRegisterRequest request)
     {
         var existingUser = await _userRepo.GetUserByEmail(request.Email);

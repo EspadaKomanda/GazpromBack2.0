@@ -4,5 +4,62 @@
         <name>BackGazprom</name>
     </assembly>
     <members>
+        <member name="M:AuthService.Services.Account.AccountService.AccountFinishRegistration(AuthService.Models.Account.Requests.AccountFinishRegistrationRequest)">
+            <summary>
+            Finishes the registration of a new account.
+            </summary>
+            <param name="request">The request object containing the registration information.</param>
+            <returns>
+            An asynchronous task that returns an action result.
+            The result is either an <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> if the registration is successful,
+            or an <see cref="T:Microsoft.AspNetCore.Mvc.UnauthorizedResult"/> if the registration code is invalid or expired,
+            or a <see cref="T:Microsoft.AspNetCore.Mvc.StatusCodeResult"/> with a status code of 409 if the username is already taken.
+            </returns>
+        </member>
+        <member name="M:AuthService.Services.Account.AccountService.AccountLogin(AuthService.Models.Account.Requests.AccountLoginRequest)">
+            <summary>
+            Logs in a user with the provided username and password.
+            </summary>
+            <param name="request">The login request containing the username and password.</param>
+            <returns>
+            An asynchronous task that returns an action result.
+            The result is either an <see cref="T:Microsoft.AspNetCore.Mvc.OkObjectResult"/> with the account tokens response if the login is successful,
+            or an <see cref="T:Microsoft.AspNetCore.Mvc.UnauthorizedObjectResult"/> with an error message if the username or password is invalid.
+            </returns>
+        </member>
+        <member name="M:AuthService.Services.Account.AccountService.AccountRefreshToken(System.String,AuthService.Models.Account.Requests.AccountRefreshTokenRequest)">
+            <summary>
+            Refreshes the access and refresh tokens for a user.
+            </summary>
+            <param name="username">The username of the user.</param>
+            <param name="request">The request containing the refresh token.</param>
+            <returns>An asynchronous task that returns an action result with the account tokens response if the refresh is successful,
+            or a not found result if the user is not found.</returns>
+        </member>
+        <member name="M:AuthService.Services.Account.AccountService.AccountRegister(AuthService.Models.Account.Requests.AccountRegisterRequest)">
+            <summary>
+            Registers a new user account.
+            </summary>
+            <param name="request">The registration request containing the user's email.</param>
+            <returns>
+            An asynchronous task that returns an action result.
+            The result is either an <see cref="T:Microsoft.AspNetCore.Mvc.OkResult"/> if the registration is successful,
+            or a <see cref="T:Microsoft.AspNetCore.Mvc.StatusCodeResult"/> with a status code of 429 if the existing registration code is still valid,
+            or a <see cref="T:Microsoft.AspNetCore.Mvc.OkResult"/> if the registration code is expired.
+            </returns>
+        </member>
+        <member name="M:AuthService.Services.Account.AccountService.AccountChangePassword(System.String,AuthService.Models.Account.Requests.AccountChangePasswordRequest)">
+            <summary>
+            Changes the password for a user.
+            </summary>
+            <param name="username">The username of the user.</param>
+            <param name="request">The request containing the old and new passwords.</param>
+            <returns>
+            An asynchronous task that returns an action result.
+            The result is either an <see cref="T:Microsoft.AspNetCore.Mvc.UnauthorizedResult"/> if the user does not exist,
+            a <see cref="T:Microsoft.AspNetCore.Mvc.BadRequestObjectResult"/> if the new password is the same as the old password or if the old password is incorrect,
+            or an <see cref="T:Microsoft.AspNetCore.Mvc.OkObjectResult"/> with the new access token and refresh token if the password is changed successfully.
+            </returns>
+        </member>
     </members>
 </doc>
