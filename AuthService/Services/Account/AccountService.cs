@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using AuthService.Services.Jwt;
 using AuthService.Database.Models;
 using AuthService.Models.Account.Requests;
@@ -9,17 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthService.Services.Account;
 
-public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, IJwtService jwtService) : IAccountService
+public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, IJwtService jwtService, ILogger<AccountService> logger) : IAccountService
 {
     private readonly IUserRepository _userRepo = userRepo;
     private readonly IUserProfileRepository _userProfileRepo = userProfileRepo;
     private readonly IRegistrationCodeRepository _regCodeRepo = regCodeRepo;
     private readonly IJwtService _jwtService = jwtService;
-
-    public Task<IActionResult> AccountChangePassword(AccountChangePasswordRequest request)
-    {
-        throw new NotImplementedException();
-    }
+    private readonly ILogger<AccountService> _logger = logger;
 
     /// <summary>
     /// Finishes the registration of a new account.
@@ -75,6 +70,8 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             AccessToken = _jwtService.GenerateAccessToken(user),
             RefreshToken = _jwtService.GenerateRefreshToken(user)
         };
+
+        _logger.LogInformation("User {Username} finished registration", user.Username);
         return new OkObjectResult(response);
     }
 
@@ -181,6 +178,8 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         await _regCodeRepo.CreateRegistrationCode(newRegCode);
 
         //todo: Send email
+
+        _logger.LogInformation("User {Email} requested registration email", request.Email);
         return new OkResult();
     }
     
