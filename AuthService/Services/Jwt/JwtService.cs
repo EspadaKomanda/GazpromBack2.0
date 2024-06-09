@@ -6,12 +6,27 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Services.Jwt;
 
-public class JwtService(IUserRepository userRepo) : IJwtService
+public class JwtService : IJwtService
 {
-    private readonly IUserRepository _userRepo = userRepo;
-    private readonly string _secretKey = Environment.GetEnvironmentVariable("AUTH_JWT_SECRET") ?? "";
-    private readonly string _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
-    private readonly string _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
+    private readonly IUserRepository _userRepo;
+    private readonly string _secretKey;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly ILogger<JwtService> _logger;
+    public JwtService(IUserRepository userRepo, ILogger<JwtService> logger)
+    {
+        _logger = logger;
+        _userRepo = userRepo;
+
+        _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
+        _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
+
+        _secretKey = Environment.GetEnvironmentVariable("AUTH_JWT_SECRET")!;
+        if (_secretKey == null)
+        {
+            throw new Exception("Missing AUTH_JWT_SECRET environment variable");
+        }
+    }
 
     public string GenerateAccessToken(User user)
     {  
