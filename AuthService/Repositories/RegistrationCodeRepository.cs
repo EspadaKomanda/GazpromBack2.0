@@ -40,13 +40,14 @@ public class RegistrationCodeRepository(ApplicationContext db) : IRegistrationCo
         return _db.RegistrationCodes.AsQueryable();
     }
 
-    public Task<bool> Save()
+    public async Task<bool> Save()
     {
-        throw new NotImplementedException();
+        return await _db.SaveChangesAsync() >= 0;
     }
 
-    public Task<bool> UpdateRegistrationCode(RegistrationCode regcode)
+    public async Task<bool> UpdateRegistrationCode(RegistrationCode regcode)
     {
-        throw new NotImplementedException();
+        _db.RegistrationCodes.Update(regcode);
+        return await Save();
     }
 }
