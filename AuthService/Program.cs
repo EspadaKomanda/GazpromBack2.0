@@ -136,3 +136,4 @@ OpenSearchSinkOptions ConfigureOpenSearchSink(IConfiguration configuration,strin
         NumberOfShards = 1
     };
 }
+

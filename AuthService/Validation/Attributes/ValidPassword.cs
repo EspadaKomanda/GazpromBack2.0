@@ -32,9 +32,12 @@ sealed public class ValidPassword : ValidationAttribute
             }
             return true;
         }
-        catch
+        catch (Exception e)
         {
+            Console.WriteLine(e);
+            _errorMessage = "Invalid password. Contact administrator if you think this is a mistake.";
             return false;
+            throw;
         }
     }
 

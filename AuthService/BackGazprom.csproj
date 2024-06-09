@@ -37,7 +37,7 @@
   <ItemGroup>
     <ContentWithTargetPath Include="Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+      <TargetPath>Data/%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
 
