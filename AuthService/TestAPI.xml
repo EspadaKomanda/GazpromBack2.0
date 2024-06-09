@@ -6,7 +6,7 @@
     <members>
         <member name="M:AuthService.Controllers.AuthController.Register(AuthService.Models.Account.Requests.AccountRegisterRequest)">
             <summary>
-            Запрос на регисттрацию нового пользователя.
+            Запрос на регистрацию нового пользователя.
             </summary>
             <response code="200">Получены токены</response>
             <response code="429">Превышено количество попыток регистрации</response>

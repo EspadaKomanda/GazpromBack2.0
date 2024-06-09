@@ -30,7 +30,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     {
         var regcode = await _regCodeRepo.GetRegistrationCodeByCode(request.RegistrationCode);
 
-        if (regcode == null || regcode.ExpirationDate < DateTime.Now)
+        if (regcode == null || regcode.ExpirationDate < DateTime.UtcNow)
         {
             // Code does not exist or expired
             return new UnauthorizedResult();
@@ -49,8 +49,8 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
            Username = request.Username,
            Email = regcode.Email,
            Password = BcryptUtils.HashPassword(request.Password),
-           RegistrationDate = DateTime.Now,
-           PasswordChangeDate = DateTime.Now
+           RegistrationDate = DateTime.UtcNow,
+           PasswordChangeDate = DateTime.UtcNow
         };
 
         try
@@ -196,7 +196,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
 
         if (existingRegCode != null)
         {
-            if (existingRegCode.ExpirationDate > DateTime.Now)
+            if (existingRegCode.ExpirationDate > DateTime.UtcNow)
             {
                 _logger.LogWarning("Attempted registration for {Email} (registration code is not expired)", request.Email);
                 //Existing registration code is still valid
@@ -213,7 +213,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         {
             Code = Guid.NewGuid().ToString(),
             Email = request.Email,
-            ExpirationDate = DateTime.Now.AddHours(4)
+            ExpirationDate = DateTime.UtcNow.AddHours(4)
         };
         try
         {
@@ -260,7 +260,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         }
 
         user.Password = BcryptUtils.HashPassword(request.NewPassword);
-        user.PasswordChangeDate = DateTime.Now;
+        user.PasswordChangeDate = DateTime.UtcNow;
         await _userRepo.UpdateUser(user);
         return new OkObjectResult(new AccountTokensResponse
         {
