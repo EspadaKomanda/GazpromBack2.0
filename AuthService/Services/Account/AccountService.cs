@@ -52,7 +52,16 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
            RegistrationDate = DateTime.Now,
            PasswordChangeDate = DateTime.Now
         };
-        await _userRepo.CreateUser(user);
+
+        try
+        {
+            await _userRepo.CreateUser(user);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Failed to add user {Username} ({Email}) to database: {Error}" , user.Username, user.Email, e.Message);
+            throw;
+        }
 
         // Creating profile
         var UserProfile = new UserProfile
@@ -62,7 +71,33 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             LastName = request.LastName,
             About = request.About,
         };
-        await _userProfileRepo.CreateUserProfile(UserProfile);
+
+        try
+        {
+            await _userProfileRepo.CreateUserProfile(UserProfile);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Failed to add user profile for user {Username} to database: {Error}", user.Username, e.Message);
+            await _userRepo.DeleteUser(user);
+            throw;
+        }
+
+        try
+        {
+            await _regCodeRepo.DeleteRegistrationCode(regcode);
+        }
+        catch (Exception e)
+        {
+            if (_regCodeRepo.GetRegistrationCodeById(regcode.Id) != null)
+            {
+                _logger.LogError("Failed to delete registration code from database: {Error}", e.Message);
+                await _userRepo.DeleteUser(user);
+                throw;
+            }
+
+            _logger.LogWarning("Registration code was already deleted: {Error}", e.Message);
+        }
 
         // Granting tokens
         AccountTokensResponse response = new()
@@ -90,11 +125,13 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
 
         if (user == null)
         {
+            _logger.LogWarning("Failed login attempt for unexistent user {Username}", request.Username);
             return new UnauthorizedObjectResult("Invalid username or password");
         }
 
         if (!BcryptUtils.VerifyPassword(request.Password, user.Password))
         {
+            _logger.LogWarning("Failed login attempt for user {Username}", request.Username);
             return new UnauthorizedObjectResult("Invalid username or password");
         }
 
@@ -121,6 +158,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         // May happen if the user is deleted for some reason
         if (user == null)
         {
+            _logger.LogWarning("Failed refresh attempt for unexistent user {Username}", username);
             return new NotFoundObjectResult("User not found");
         }
 
@@ -148,8 +186,9 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         var existingUser = await _userRepo.GetUserByEmail(request.Email);
 
         //Pretend to register if account already exists
-        if (existingUser == null)
+        if (existingUser != null)
         {
+            _logger.LogWarning("Attempted registration for {Email} (user already exists)", request.Email);
             return new OkResult();
         }
 
@@ -159,6 +198,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         {
             if (existingRegCode.ExpirationDate > DateTime.Now)
             {
+                _logger.LogWarning("Attempted registration for {Email} (registration code is not expired)", request.Email);
                 //Existing registration code is still valid
                 return new StatusCodeResult(429);
             }
@@ -175,8 +215,15 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             Email = request.Email,
             ExpirationDate = DateTime.Now.AddHours(4)
         };
-        await _regCodeRepo.CreateRegistrationCode(newRegCode);
-
+        try
+        {
+            await _regCodeRepo.CreateRegistrationCode(newRegCode);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Failed to create registration code for {Email}: {Error}", request.Email, e);
+            throw;
+        }
         //todo: Send email
 
         _logger.LogInformation("User {Email} requested registration email", request.Email);
