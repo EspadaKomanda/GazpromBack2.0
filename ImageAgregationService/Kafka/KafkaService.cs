@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
+using System.Text;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
@@ -26,7 +27,7 @@ public class KafkaService
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService)
     {
-        _topicName = "testTopic";
+        _topicName = "imageRequestsTopic";
         _consumer = consumer;
         _producer = producer;
         _logger = logger;
@@ -79,14 +80,19 @@ public class KafkaService
 
                 if (result != null)
                 {
-                    switch (result.Message.Key)
+                    switch (Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("method")).GetValueBytes()))
                     {
-                        case string key when key.Contains("generateImage"):
+                        case "generateImage":
                             try
                             {
                                 var message = JsonConvert.DeserializeObject<GenerateImageKafkaRequest>(result.Message.Value);
                                 ImageDto image = await _imageAgregationService.GetImage(result.Message.Key,message);
-                                if(await Produce("getImages",new Message<string, string>(){ Key = "generateImage"+key.Replace("generateImage",""), Value = JsonConvert.SerializeObject(image) }))
+                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                                                                                    Value = JsonConvert.SerializeObject(image), 
+                                                                                                    Headers = new Headers(){ 
+                                                                                                                new Header("method", Encoding.UTF8.GetBytes("generateImage")),
+                                                                                                                new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")) 
+                                                                                                    }}))
                                 {
                                     _consumer.Commit(result);
                                 }
@@ -98,7 +104,13 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw e;
                                 }
-                                await Produce("getImages",new Message<string, string>(){ Key = "generateImage_error"+key.Replace("generateImage",""), Value = "Error generating image"});
+                                await Produce("generateImageResponse",new Message<string, string>(){ Key =result.Message.Key, 
+                                                                                                    Value = "Error generating image", 
+                                                                                                    Headers = new Headers(){
+                                                                                                                new Header("method", Encoding.UTF8.GetBytes("generateImage")),
+                                                                                                                new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
+                                                                                                                new Header("error", Encoding.UTF8.GetBytes("Error generating image"))
+                                                                                                    }});
                                 _consumer.Commit(result);
                                 throw new ConsumerRecievedMessageInvalidException("Error deserializing message",e);
                             }
@@ -107,7 +119,7 @@ public class KafkaService
                             try
                             {
                                 List<TemplateDto> templates = await _templateService.GetTemplates(JsonConvert.DeserializeObject<GetTemplateKafkaRequest>(result.Message.Value));
-                                if(await Produce("getTemplates",new Message<string, string>(){ Key = "getTemplates"+key.Replace("getTemplates",""), Value = JsonConvert.SerializeObject(templates) }))
+                                if(await Produce("getTemplatesResponse",new Message<string, string>(){ Key = "getTemplates"+key.Replace("getTemplates",""), Value = JsonConvert.SerializeObject(templates) }))
                                 {
                                     _consumer.Commit(result);
                                 }
@@ -119,7 +131,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw e;
                                 }
-                                await Produce("getTemplates",new Message<string, string>(){ Key = "getTemplates_error"+key.Replace("getTemplates",""), Value = "Error getting templates"});
+                                await Produce("getTemplatesResponse",new Message<string, string>(){ Key = "getTemplates_error"+key.Replace("getTemplates",""), Value = "Error getting templates"});
                                 _consumer.Commit(result);
                                 throw new ConsumerRecievedMessageInvalidException("Error deserializing message",e);
                             }
