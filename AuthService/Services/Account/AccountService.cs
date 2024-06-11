@@ -5,6 +5,7 @@ using AuthService.Models.Account.Responses;
 using AuthService.Repositories;
 using AuthService.Utils;
 using Microsoft.AspNetCore.Mvc;
+using AuthService.Exceptions.AccountExceptions;
 
 namespace AuthService.Services.Account;
 
@@ -26,21 +27,21 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// or an <see cref="UnauthorizedResult"/> if the registration code is invalid or expired,
     /// or a <see cref="StatusCodeResult"/> with a status code of 409 if the username is already taken.
     /// </returns>
-    public async Task<ActionResult<AccountTokensResponse>> AccountFinishRegistration(AccountFinishRegistrationRequest request)
+    public async Task<AccountTokensResponse> AccountFinishRegistration(AccountFinishRegistrationRequest request)
     {
         var regcode = await _regCodeRepo.GetRegistrationCodeByCode(request.RegistrationCode);
 
         if (regcode == null || regcode.ExpirationDate < DateTime.UtcNow)
         {
             // Code does not exist or expired
-            return new UnauthorizedResult();
+            throw new InvalidCodeException("Registration code does not exist or expired");
         }
 
         var existingUser = await _userRepo.GetUserByUsername(request.Username);
         if (existingUser != null)
         {
             // Username already taken
-            return new StatusCodeResult(409);
+            throw new UsernameExistsException("Username already taken");
         }
 
         // Creating user
@@ -107,7 +108,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         };
 
         _logger.LogInformation("User {Username} finished registration", user.Username);
-        return new OkObjectResult(response);
+        return response;
     }
 
     /// <summary>
@@ -119,20 +120,20 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// The result is either an <see cref="OkObjectResult"/> with the account tokens response if the login is successful,
     /// or an <see cref="UnauthorizedObjectResult"/> with an error message if the username or password is invalid.
     /// </returns>
-    public async Task<ActionResult<AccountTokensResponse>> AccountLogin(AccountLoginRequest request)
+    public async Task<AccountTokensResponse> AccountLogin(AccountLoginRequest request)
     {
         var user = await _userRepo.GetUserByUsername(request.Username);
 
         if (user == null)
         {
             _logger.LogWarning("Failed login attempt for unexistent user {Username}", request.Username);
-            return new UnauthorizedObjectResult("Invalid username or password");
+            throw new LoginException("Invalid username or password");
         }
 
         if (!BcryptUtils.VerifyPassword(request.Password, user.Password))
         {
             _logger.LogWarning("Failed login attempt for user {Username}", request.Username);
-            return new UnauthorizedObjectResult("Invalid username or password");
+            throw new LoginException("Invalid username or password");
         }
 
         AccountTokensResponse response = new()
@@ -140,7 +141,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             AccessToken = _jwtService.GenerateAccessToken(user),
             RefreshToken = _jwtService.GenerateRefreshToken(user)
         };
-        return new OkObjectResult(response);
+        return response;
 
     }
 
@@ -151,7 +152,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// <param name="request">The request containing the refresh token.</param>
     /// <returns>An asynchronous task that returns an action result with the account tokens response if the refresh is successful,
     /// or a not found result if the user is not found.</returns>
-    public async Task<ActionResult<AccountTokensResponse>> AccountRefreshToken(string username, AccountRefreshTokenRequest request)
+    public async Task<AccountTokensResponse> AccountRefreshToken(string username, AccountRefreshTokenRequest request)
     {
         var user =  await _userRepo.GetUserByUsername(username);
 
@@ -159,7 +160,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         if (user == null)
         {
             _logger.LogWarning("Failed refresh attempt for unexistent user {Username}", username);
-            return new NotFoundObjectResult("User not found");
+            throw new TokenException("Could not find the user for the respective token in the database");
         }
 
         // Grant the tokens
@@ -168,7 +169,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             AccessToken = _jwtService.GenerateAccessToken(user),
             RefreshToken = _jwtService.GenerateRefreshToken(user)
         };
-        return new OkObjectResult(response);
+        return response;
     }
 
     /// <summary>
@@ -181,7 +182,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// or a <see cref="StatusCodeResult"/> with a status code of 429 if the existing registration code is still valid,
     /// or a <see cref="OkResult"/> if the registration code is expired.
     /// </returns>
-    public async Task<ActionResult> AccountRegister(AccountRegisterRequest request)
+    public async Task<bool> AccountRegister(AccountRegisterRequest request)
     {
         var existingUser = await _userRepo.GetUserByEmail(request.Email);
 
@@ -189,7 +190,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         if (existingUser != null)
         {
             _logger.LogWarning("Attempted registration for {Email} (user already exists)", request.Email);
-            return new OkResult();
+            return true;
         }
 
         var existingRegCode = await _regCodeRepo.GetRegistrationCodeByEmail(request.Email);
@@ -200,7 +201,7 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             {
                 _logger.LogWarning("Attempted registration for {Email} (registration code is not expired)", request.Email);
                 //Existing registration code is still valid
-                return new StatusCodeResult(429);
+                throw new RegistrationLimitException("Too many requests for registration of this email address");
             }
             else
             {
@@ -224,10 +225,11 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             _logger.LogError("Failed to create registration code for {Email}: {Error}", request.Email, e);
             throw;
         }
-        //todo: Send email
+
+        //TODO: Send email
 
         _logger.LogInformation("User {Email} requested registration email", request.Email);
-        return new OkResult();
+        return true;
     }
     
     /// <summary>
@@ -241,31 +243,31 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
     /// a <see cref="BadRequestObjectResult"/> if the new password is the same as the old password or if the old password is incorrect,
     /// or an <see cref="OkObjectResult"/> with the new access token and refresh token if the password is changed successfully.
     /// </returns>
-    public async Task<ActionResult<AccountTokensResponse>> AccountChangePassword(string username, AccountChangePasswordRequest request)
+    public async Task<AccountTokensResponse> AccountChangePassword(string username, AccountChangePasswordRequest request)
     {
         var user = await _userRepo.GetUserByUsername(username);
         if (user == null)
         {
-            return new UnauthorizedResult();
+            throw new TokenException("Could not find the user for the respective token in the database");
         }
 
         if (request.OldPassword == request.NewPassword)
         {
-            return new BadRequestObjectResult("New and old passwords must not match.");
+            throw new PasswordMatchException("The new password must be different from the old password.");
         }
 
         if (!BcryptUtils.VerifyPassword(request.OldPassword, user.Password))
         {
-            return new BadRequestObjectResult("Incorrect old password.");
+            throw new InvalidOldPasswordException("The old password is incorrect.");
         }
 
         user.Password = BcryptUtils.HashPassword(request.NewPassword);
         user.PasswordChangeDate = DateTime.UtcNow;
         await _userRepo.UpdateUser(user);
-        return new OkObjectResult(new AccountTokensResponse
+        return new AccountTokensResponse
         {
             AccessToken = _jwtService.GenerateAccessToken(user),
             RefreshToken = _jwtService.GenerateRefreshToken(user)
-        });
+        };
     }
 }
