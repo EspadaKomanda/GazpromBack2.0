@@ -7,6 +7,7 @@ using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Services;
 using ImageAgregationService.Services.ImageAgregationService;
+using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.KafkaException;
 using KafkaTestLib.KafkaException.ConsumerException;
 using KafkaTestLib.Models;
@@ -21,8 +22,9 @@ public class KafkaService
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IImageAgregationService _imageAgregationService;
+    private readonly ITemplateService _templateService;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService)
     {
         _topicName = "testTopic";
         _consumer = consumer;
@@ -30,6 +32,7 @@ public class KafkaService
         _logger = logger;
         _kafkaTopicManager = kafkaTopicManager;
         _imageAgregationService = imageAgregationService;
+        _templateService = templateService;
         bool isTopicAvailable = IsTopicAvailable().Result;
         if(isTopicAvailable)
         {
@@ -95,19 +98,30 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw e;
                                 }
-                                _logger.LogError(e,"Error deserializing message");
+                                await Produce("getImages",new Message<string, string>(){ Key = "generateImage_error"+key.Replace("generateImage",""), Value = "Error generating image"});
                                 _consumer.Commit(result);
                                 throw new ConsumerRecievedMessageInvalidException("Error deserializing message",e);
                             }
                             break;
-                        case  string key when key.Contains("getTemplates"):
+                        case string key when key.Contains("getTemplates"):
                             try
                             {
-
+                                List<TemplateDto> templates = await _templateService.GetTemplates(JsonConvert.DeserializeObject<GetTemplateKafkaRequest>(result.Message.Value));
+                                if(await Produce("getTemplates",new Message<string, string>(){ Key = "getTemplates"+key.Replace("getTemplates",""), Value = JsonConvert.SerializeObject(templates) }))
+                                {
+                                    _consumer.Commit(result);
+                                }
                             }
                             catch (Exception e)
                             {
-                                
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw e;
+                                }
+                                await Produce("getTemplates",new Message<string, string>(){ Key = "getTemplates_error"+key.Replace("getTemplates",""), Value = "Error getting templates"});
+                                _consumer.Commit(result);
+                                throw new ConsumerRecievedMessageInvalidException("Error deserializing message",e);
                             }
                             break;
                         case string key when key.Contains("getImages"):
