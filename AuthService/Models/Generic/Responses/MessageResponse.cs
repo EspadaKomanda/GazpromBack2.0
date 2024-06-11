@@ -1,4 +1,4 @@
-namespace BackGazprom.Models.Generic.Responses;
+namespace AuthService.Models.Generic.Responses;
 
 public class MessageResponse
 {

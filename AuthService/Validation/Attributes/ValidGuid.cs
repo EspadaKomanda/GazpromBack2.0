@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BackGazprom.Validation.Attributes;
+namespace AuthService.Validation.Attributes;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 sealed public class ValidGuid : ValidationAttribute

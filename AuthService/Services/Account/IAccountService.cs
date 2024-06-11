@@ -1,13 +1,14 @@
-using BackGazprom.Models.Account.Requests;
+using AuthService.Models.Account.Requests;
+using AuthService.Models.Account.Responses;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackGazprom.Services.Account;
+namespace AuthService.Services.Account;
 
 public interface IAccountService
 {
-    public Task<IActionResult> AccountRegister(AccountRegisterRequest request);
-    public Task<IActionResult> AccountFinishRegistration(AccountFinishRegistrationRequest request);
-    public Task<IActionResult> AccountLogin(AccountLoginRequest request);
-    public Task<IActionResult> AccountChangePassword(AccountChangePasswordRequest request);
-    public Task<IActionResult> AccountRefreshToken(AccountRefreshTokenRequest request);
+    public Task<ActionResult> AccountRegister(AccountRegisterRequest request);
+    public Task<ActionResult<AccountTokensResponse>> AccountFinishRegistration(AccountFinishRegistrationRequest request);
+    public Task<ActionResult<AccountTokensResponse>> AccountLogin(AccountLoginRequest request);
+    public Task<ActionResult<AccountTokensResponse>> AccountChangePassword(string username, AccountChangePasswordRequest request);
+    public Task<ActionResult<AccountTokensResponse>> AccountRefreshToken(string username, AccountRefreshTokenRequest request);
 }

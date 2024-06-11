@@ -31,12 +31,14 @@ public class JwtAuthenticationHandler(
             {
                 // Access token verification
                 string accessToken = token["Access ".Length..];
-                if (_jwtService.ValidateAccessToken(accessToken, out string? username))
+                var validationResult = _jwtService.ValidateAccessToken(accessToken);
+                if (validationResult.Item1)
                 {
                     // Create a ClaimsIdentity with the user information
                     var claims = new[] 
                     {
-                        new Claim(ClaimTypes.Name, username!),
+                        new Claim(ClaimTypes.Name, validationResult.Item2!),
+                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Access")
                     };
@@ -51,12 +53,14 @@ public class JwtAuthenticationHandler(
             {
                 // Refresh token verification
                 string refreshToken = token["Refresh ".Length..];
-                if (_jwtService.ValidateRefreshToken(refreshToken, out string? username))
+                var validationResult = await _jwtService.ValidateRefreshToken(refreshToken);
+                if (validationResult.Item1)
                 {
                     // Create a ClaimsIdentity with the user information
                     var claims = new[] 
                     {
-                        new Claim(ClaimTypes.Name, username!),
+                        new Claim(ClaimTypes.Name, validationResult.Item2!),
+                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Refresh")
                     };

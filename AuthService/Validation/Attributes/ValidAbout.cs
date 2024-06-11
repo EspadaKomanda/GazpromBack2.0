@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace BackGazprom.Validation.Attributes;
+namespace AuthService.Validation.Attributes;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 sealed public class ValidAbout : ValidationAttribute

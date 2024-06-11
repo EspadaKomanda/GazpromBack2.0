@@ -5,6 +5,7 @@
 
 # editors
 *.kate-swp
+local.session.sql
 
 # csharp
 bin

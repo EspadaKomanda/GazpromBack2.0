@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using BackGazprom.Validation.Attributes;
+using AuthService.Validation.Attributes;
 
-namespace BackGazprom.Models.Account.Requests;
+namespace AuthService.Models.Account.Requests;
 
 public class AccountFinishRegistrationRequest
 {
@@ -14,6 +14,8 @@ public class AccountFinishRegistrationRequest
     [Required]
     [ValidName]
     public string LastName { get; set; } = null!;
+    [ValidAbout]
+    public string? About { get; set; }
     [Required]
     [ValidPassword]
     public string Password { get; set; } = null!;

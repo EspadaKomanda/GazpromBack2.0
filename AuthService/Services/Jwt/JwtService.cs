@@ -1,17 +1,32 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using BackGazprom.Database.Models;
-using BackGazprom.Repositories;
+using AuthService.Database.Models;
+using AuthService.Repositories;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Services.Jwt;
 
-public class JwtService(IUserRepository userRepo) : IJwtService
+public class JwtService : IJwtService
 {
-    private readonly IUserRepository _userRepo = userRepo;
-    private readonly string _secretKey = Environment.GetEnvironmentVariable("AUTH_JWT_SECRET") ?? "";
-    private readonly string _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
-    private readonly string _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
+    private readonly IUserRepository _userRepo;
+    private readonly string _secretKey;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly ILogger<JwtService> _logger;
+    public JwtService(IUserRepository userRepo, ILogger<JwtService> logger)
+    {
+        _logger = logger;
+        _userRepo = userRepo;
+
+        _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
+        _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
+
+        _secretKey = Environment.GetEnvironmentVariable("AUTH_JWT_SECRET")!;
+        if (_secretKey == null)
+        {
+            throw new Exception("Missing AUTH_JWT_SECRET environment variable");
+        }
+    }
 
     public string GenerateAccessToken(User user)
     {  
@@ -56,14 +71,13 @@ public class JwtService(IUserRepository userRepo) : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
-    public bool ValidateAccessToken(string? token, out string? username)
+    public Tuple<bool, string> ValidateAccessToken(string? token)
     {
         try
         {
             if (token == null)
             {
-                username = null;
-                return false;
+                return new (false, "");
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Convert.FromBase64String(_secretKey);
@@ -82,31 +96,29 @@ public class JwtService(IUserRepository userRepo) : IJwtService
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
-            username = validatedJwt.Claims.First(claim => claim.Type == "Username").Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
 
             // Проверка типа токена
-            if (validatedJwt.Claims.First(claim => claim.Type == "Type").Value != "access")
+            if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
             {
-                return false;
+                return new (false, "");
             }
 
-            return true;
+            return new (true, username);
         }
         catch (Exception)
         {
-            username = null;
-            return false;
+            return new (false, "");;
         }  
     }
 
-    public bool ValidateRefreshToken(string? token, out string? username)
+    public async Task<Tuple<bool, string>> ValidateRefreshToken(string? token)
     {
         try
         {
             if (token == null)
             {
-                username = null;
-                return false;
+                return new (false, "");;
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Convert.FromBase64String(_secretKey);
@@ -125,29 +137,32 @@ public class JwtService(IUserRepository userRepo) : IJwtService
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
-            username = validatedJwt.Claims.First(claim => claim.Type == "Username").Value;
             var passwordChangeDate = validatedJwt.Claims.First(claim => claim.Type == "PasswordChangeDate").Value;
-
+            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
             // Проверка типа токена
-            if (validatedJwt.Claims.First(claim => claim.Type == "Type").Value != "refresh")
+            if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")
             {
-                username=null;
-                return false;
+                return new (false, "");
+            }
+
+            var user = await _userRepo.GetUserByUsername(username);
+            if (user == null)
+            {
+                return new (false, "");
             }
 
             // Проверка, что дата изменения пароля совпадает с фактической
-            if (_userRepo.GetUserByUsername(username)!.PasswordChangeDate.ToString() != passwordChangeDate)
+            if (user.PasswordChangeDate.ToString() != passwordChangeDate)
             {
                 username=null;
-                return false;
+                return new (false, "");
             }
 
-            return true;
+            return new (true, username);
         }
         catch (Exception)
         {
-            username=null;
-            return false;
+            return new (false, "");
         }
     }
 }

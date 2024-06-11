@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace BackGazprom.Validation.Attributes;
+namespace AuthService.Validation.Attributes;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 sealed public class ValidEmailDomain : ValidationAttribute
 {
-    private static readonly string[] _domains = (Environment.GetEnvironmentVariable("EMAIL_DOMAINS_WHITELIST")??"").Split(",");
+    private static readonly string[] _domains = (Environment.GetEnvironmentVariable("EMAIL_DOMAINS_WHITELIST")??"").Split(",").Where(x => x!="").ToArray();
     private string? _errorMessage;
 
     public override bool IsValid(object? value)
     {
+        Console.WriteLine(_domains.Length);
         // Ommitting if EMAIL_DOMAINS_WHITELIST is not set
         if (_domains.Length == 0)
         {

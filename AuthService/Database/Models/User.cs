@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using BackGazprom.Validation.Attributes;
+using AuthService.Validation.Attributes;
 using Microsoft.EntityFrameworkCore;
 
-namespace BackGazprom.Database.Models;
+namespace AuthService.Database.Models;
 
 [Index(nameof(Username), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]

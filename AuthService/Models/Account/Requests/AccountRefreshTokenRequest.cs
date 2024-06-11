@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackGazprom.Models.Account.Requests;
+namespace AuthService.Models.Account.Requests;
 
 public class AccountRefreshTokenRequest
 {

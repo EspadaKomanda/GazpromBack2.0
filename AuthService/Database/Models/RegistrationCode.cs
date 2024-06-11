@@ -1,7 +1,17 @@
-namespace BackGazprom.Database.Models;
+using System.ComponentModel.DataAnnotations;
+using AuthService.Validation.Attributes;
+
+namespace AuthService.Database.Models;
 
 public class RegistrationCode 
 {
-    public int Id { get; set; }
+    [Key]
+    public long Id { get; set; }
+    [Required]
+    [ValidGuid]
     public string Code { get; set; } = null!;
+    [Required]
+    public string Email { get; set; } = null!;
+    [Required]
+    public DateTime ExpirationDate { get; set; }
 }
