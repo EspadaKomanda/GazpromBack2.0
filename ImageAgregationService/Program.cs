@@ -79,9 +79,8 @@ builder.Services.AddTransient<ITemplateRepository, TemplateRepository>();
 builder.Services.AddTransient<IImageRepository, ImageRepository>();
 builder.Services.AddTransient<IMarkRepository, MarkRepository>();
 builder.Services.AddTransient<IImageAgregationService, ImageAgregationService.Services.ImageAgregationService.ImageAgregationService>();
-builder.Services.AddSingleton<KafkaProducer>()
-                .AddSingleton<KafkaTopicManager>();
-builder.Services.AddScoped<KafkaConsumer>();
+builder.Services.AddSingleton<KafkaTopicManager>();
+builder.Services.AddScoped<KafkaService>();
 builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -103,7 +102,7 @@ var s3Service = app.Services.GetRequiredService<IS3Service>();
 await s3Service.ConfigureBuckets();
 using (var scope = app.Services.CreateScope())
 {
-    var kafkaConsumer = scope.ServiceProvider.GetRequiredService<KafkaConsumer>();
+    var kafkaConsumer = scope.ServiceProvider.GetRequiredService<KafkaService>();
     await kafkaConsumer.Consume();
 }
 var templateRepository = app.Services.GetRequiredService<ITemplateRepository>();

@@ -103,7 +103,9 @@ namespace ImageAgregationService.Services
                     return new ImageModel
                     {
                         Name = fileName,
-                        Url = response
+                        Url = response,
+                        Mark = new MarkModel(),
+                        Template = new TemplateModel()
                     };
                 }
                 if(metadataResponse.HttpStatusCode == System.Net.HttpStatusCode.NotFound)

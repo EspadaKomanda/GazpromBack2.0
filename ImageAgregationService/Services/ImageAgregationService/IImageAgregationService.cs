@@ -5,7 +5,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
 {
     public interface IImageAgregationService
     {
-        Task GetImage(string key,GenerateImageKafkaRequest generateImageRequest);
+        Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest);
         
     }
 }

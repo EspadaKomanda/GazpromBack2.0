@@ -1,4 +1,5 @@
 using ImageAgregationService.Exceptions.GenerateImageExceptions;
+using ImageAgregationService.Exceptions.S3ServiceExceptions;
 using ImageAgregationService.Exceptions.TemplateExceptions;
 using ImageAgregationService.Models;
 using ImageAgregationService.Models.DTO;
@@ -21,12 +22,11 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly IImageRepository _imageRepository;
         private readonly ITemplateRepository _templateRepository;
         private readonly ILogger<ImageAgregationService> _logger;
-        private readonly KafkaProducer _kafkaProducer;
         private readonly IS3Service _s3Service;
         private readonly ImageGenerationCommunicator _imageGenerationCommunicator;
         private readonly ImageVerifierCommunicator _imageVerifierCommunicator;
         private readonly ImageTextAdderCommunicator _imageTextAdderCommunicator;
-        public ImageAgregationService(IImageRepository imageRepository, ITemplateRepository templateRepository, ILogger<ImageAgregationService> logger, IS3Service s3Service, ImageGenerationCommunicator imageGenerationCommunicator, ImageVerifierCommunicator imageVerifierCommunicator, ImageTextAdderCommunicator imageTextAdderCommunicator, KafkaProducer kafkaProducer)
+        public ImageAgregationService(IImageRepository imageRepository, ITemplateRepository templateRepository, ILogger<ImageAgregationService> logger, IS3Service s3Service, ImageGenerationCommunicator imageGenerationCommunicator, ImageVerifierCommunicator imageVerifierCommunicator, ImageTextAdderCommunicator imageTextAdderCommunicator)
         {
             _imageRepository = imageRepository;
             _templateRepository = templateRepository;
@@ -35,15 +35,14 @@ namespace ImageAgregationService.Services.ImageAgregationService
             _imageGenerationCommunicator = imageGenerationCommunicator;
             _imageVerifierCommunicator = imageVerifierCommunicator;
             _imageTextAdderCommunicator = imageTextAdderCommunicator;
-            _kafkaProducer = kafkaProducer;
         }
         
-        public async Task GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
+        public async Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
         {  
             try
             {
-                var template = await _templateRepository.IsTemplateExist(generateImageRequest.TemplateName);
-                if(!template)
+                var IsTemplateExist = await _templateRepository.IsTemplateExist(generateImageRequest.TemplateName);
+                if(!IsTemplateExist)
                 {
                     _logger.LogError("Template not found");
                     throw new TemplateNotFoundException("Template not found");
@@ -52,27 +51,36 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
                 AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
                 image.ImageByteArray = imageWithText.ImageByteArray;
-                if(await _s3Service.UploadImageToS3Bucket(image))
-                {
-                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
-                    await _imageRepository.CreateImage(imageModel);
-                    _logger.LogInformation("Saved image model: " + image.ImageName);
-                    ProduceResponseModel responseStatus = await _kafkaProducer.Produce("generatedImages", new Confluent.Kafka.Message<string, string>(){ Key = "addimageresponse"+key, Value = JsonConvert.SerializeObject(imageModel)});
-                    if(responseStatus.Success)
-                    {
-                        _logger.LogInformation("Sended image: " + image.ImageName);
-                        return;
-                    }
-                    _logger.LogError("Failed to send image: " + image.ImageName + " with error: " + responseStatus.ErrorMessage);
-
+                if(!await _s3Service.UploadImageToS3Bucket(image))
+                {  
+                    _logger.LogError("Error uploading image");
+                    throw new UploadImageException("Error uploading image");
                 }
+                ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
+                TemplateModel currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
+                imageModel.Template = currentTemplate;
+                imageModel.Mark = new MarkModel(){ Name = "none"};
+                await _imageRepository.CreateImage(imageModel);
+                _logger.LogInformation("Saved image model: " + image.ImageName);
+                return new ImageDto()
+                {
+                    Name = imageModel.Name,
+                    Url = imageModel.Url,
+                    mark = new MarkDto()
+                    {
+                        Name = imageModel.Mark.Name
+                    },
+                    template = new TemplateDto()
+                    {
+                        Name = imageModel.Template.Name
+                    }
+                };
             }
             catch (Exception e)
             {
                 if(!(e is MyKafkaException))
                 {
                     _logger.LogError(e,"Error generating image");
-                    ProduceResponseModel responseStatus = await _kafkaProducer.Produce("generatedImages", new Confluent.Kafka.Message<string, string>(){ Key = "addimageresponse_error"+key, Value = JsonConvert.SerializeObject(e)});
                     throw new GenerateImageException("Error generating image",e);
                 }
                 _logger.LogError(e,"Kafka error");
