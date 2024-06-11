@@ -9,6 +9,7 @@ public class RolesService(RoleRepository roleRepo, ILogger<RolesService> logger)
 {
     private readonly RoleRepository _roleRepo = roleRepo;
     private readonly ILogger<RolesService> _logger = logger;
+    
     public async Task<RoleResponse> CreateRole(RoleCreateRequest request)
     {
         // Check if role already exists
