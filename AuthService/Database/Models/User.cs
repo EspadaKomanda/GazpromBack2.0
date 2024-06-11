@@ -24,4 +24,7 @@ public class User {
     public DateTime PasswordChangeDate {get;set;}
     public bool? IsSuper {get;set;}=false;
     public bool? ForcePasswordChange {get;set;}=false;
+    [Required]
+    public Role Role {get;set;} = null!;
+    public long RoleId {get;set;}
 }
