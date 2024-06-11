@@ -115,11 +115,16 @@ public class KafkaService
                                 throw new ConsumerRecievedMessageInvalidException("Error deserializing message",e);
                             }
                             break;
-                        case string key when key.Contains("getTemplates"):
+                        case "getTemplates":
                             try
                             {
                                 List<TemplateDto> templates = await _templateService.GetTemplates(JsonConvert.DeserializeObject<GetTemplateKafkaRequest>(result.Message.Value));
-                                if(await Produce("getTemplatesResponse",new Message<string, string>(){ Key = "getTemplates"+key.Replace("getTemplates",""), Value = JsonConvert.SerializeObject(templates) }))
+                                if(await Produce("getTemplatesResponse",new Message<string, string>(){ Key = result.Message.Key,
+                                                                                                     Value = JsonConvert.SerializeObject(templates),
+                                                                                                     Headers = new Headers(){
+                                                                                                                new Header("method", Encoding.UTF8.GetBytes("getTemplates")),
+                                                                                                                new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                                                                                     }}))
                                 {
                                     _consumer.Commit(result);
                                 }
