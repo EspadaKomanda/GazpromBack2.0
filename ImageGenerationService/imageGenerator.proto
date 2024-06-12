@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package imagegenerator;
+
+message GenerateImageRequest {
+  string prompt = 1;
+  string template = 2;
+}
+
+message GenerateImageResponse {
+  string image_name = 1;
+  string template = 2;
+  bytes image_byte_array = 3;
+  string error = 4;
+}
+
+service ImageGenerator {
+  rpc GenerateImage(GenerateImageRequest) returns (GenerateImageResponse);
+}
