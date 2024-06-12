@@ -3,6 +3,7 @@ using DialogService.Models.Requests;
 
 namespace DialogService.Services.DialogsService;
 
+//FIXME: Only operational for the user as of now
 public interface IDialogsService
 {
     public Task<Dialog> CreateDialog(long ownerId, CreateDialogRequest request);

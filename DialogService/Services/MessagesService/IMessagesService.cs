@@ -3,6 +3,7 @@ using DialogService.Models.Messages.Requests;
 
 namespace DialogService.Services.MessagesService;
 
+//FIXME: Only operational for the user as of now
 public interface IMessagesService
 {
     public Task<Message> SendMessage(long ownerId, SendMessageRequest obj);

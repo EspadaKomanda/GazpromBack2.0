@@ -2,7 +2,6 @@ using DialogService.Database.Models;
 
 namespace DialogService.Repositories;
 
-//FIXME: Only operational for the user as of now
 public interface IMessageRepository
 {
     Task<bool> AddMessage(Message obj);
