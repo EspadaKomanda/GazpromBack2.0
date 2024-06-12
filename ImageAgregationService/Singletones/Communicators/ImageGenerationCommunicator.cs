@@ -11,7 +11,7 @@ namespace ImageAgregationService.Singletones.Communicators
         public ImageGenerationCommunicator(ILogger<ImageGenerationCommunicator> logger)
         {
             _logger = logger;
-            GrpcChannel channel = GrpcChannel.ForAddress($"");
+            GrpcChannel channel = GrpcChannel.ForAddress($"https://localhost:5001");
             _imageGeneratorClient = new ImageGenerator.ImageGeneratorClient(channel);
         }
         public async Task<GenerateImageResponse> GenerateImage(string prompt)

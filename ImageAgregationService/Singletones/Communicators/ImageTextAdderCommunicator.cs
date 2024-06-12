@@ -11,7 +11,7 @@ namespace ImageAgregationService.Singletones.Communicators
         public ImageTextAdderCommunicator(ILogger<ImageTextAdderCommunicator> logger)
         {
             _logger = logger;
-            GrpcChannel channel = GrpcChannel.ForAddress($"");
+            GrpcChannel channel = GrpcChannel.ForAddress($"https://localhost:5001");
             _imageTextAdderClient = new ImageTextAdder.ImageTextAdderClient(channel);
         }
         public async Task<AddTextToImageResponse> AddText(VerifyImageResponse imageResponse, string text)

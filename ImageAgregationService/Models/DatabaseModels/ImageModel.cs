@@ -13,10 +13,10 @@ namespace ImageAgregationService.Models
         public string Url {get;set;}
         [Required]
         public string Prompt {get;set;}
-        public int TemplateId {get;set;}
+        public Guid TemplateId {get;set;}
         [ForeignKey("TemplateId")]
         public TemplateModel Template {get;set;}
-        public int MarkId {get;set;}
+        public Guid MarkId {get;set;}
         [ForeignKey("MarkId")]
         public MarkModel Mark {get;set;}
     }

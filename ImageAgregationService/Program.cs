@@ -3,11 +3,15 @@ using Amazon;
 using Amazon.S3;
 using Confluent.Kafka;
 using ImageAgregationService.Database;
+using ImageAgregationService.Models;
+using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Repository;
 using ImageAgregationService.Repository.ImageRepository;
 using ImageAgregationService.Repository.MarkRepository;
 using ImageAgregationService.Services;
 using ImageAgregationService.Services.ImageAgregationService;
+using ImageAgregationService.Services.MarkService;
+using ImageAgregationService.Services.TemplateService;
 using ImageAgregationService.Singletones;
 using ImageAgregationService.Singletones.Communicators;
 using KafkaTestLib.Kafka;
@@ -75,16 +79,18 @@ builder.Services.AddSingleton<ImageGenerationCommunicator>();
 builder.Services.AddSingleton<ImageVerifierCommunicator>();
 builder.Services.AddSingleton<ImageTextAdderCommunicator>();
 builder.Services.AddTransient<IS3Service, S3Service>();
-builder.Services.AddTransient<ITemplateRepository, TemplateRepository>();
-builder.Services.AddTransient<IImageRepository, ImageRepository>();
-builder.Services.AddTransient<IMarkRepository, MarkRepository>();
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddScoped<IMarkRepository, MarkRepository>();
 builder.Services.AddTransient<IImageAgregationService, ImageAgregationService.Services.ImageAgregationService.ImageAgregationService>();
+builder.Services.AddTransient<ITemplateService, TemplateService>();
+builder.Services.AddTransient<IMarkService, MarkService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
-builder.Services.AddScoped<KafkaService>();
+
 builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddScoped<KafkaService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -100,14 +106,13 @@ if (app.Environment.IsDevelopment())
 
 var s3Service = app.Services.GetRequiredService<IS3Service>();
 await s3Service.ConfigureBuckets();
-using (var scope = app.Services.CreateScope())
-{
-    var kafkaConsumer = scope.ServiceProvider.GetRequiredService<KafkaService>();
-    await kafkaConsumer.Consume();
-}
-var templateRepository = app.Services.GetRequiredService<ITemplateRepository>();
+using var scope = app.Services.CreateScope();
+var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
 var ConfigReader = app.Services.GetRequiredService<ConfigReader>();
-await templateRepository.GenerateTemplates(await ConfigReader.GetBuckets());
+List<string> buckets = await ConfigReader.GetBuckets();
+await templateRepository.GenerateTemplates(buckets);
+var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
+await kafkaService.Consume();
 
 app.Run();
 void configureLogging(){

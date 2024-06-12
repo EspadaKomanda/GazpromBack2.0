@@ -13,6 +13,7 @@ using Imageverifier;
 using KafkaTestLib.Kafka;
 using KafkaTestLib.KafkaException;
 using KafkaTestLib.Models;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
 namespace ImageAgregationService.Services.ImageAgregationService
@@ -26,7 +27,15 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly ImageGenerationCommunicator _imageGenerationCommunicator;
         private readonly ImageVerifierCommunicator _imageVerifierCommunicator;
         private readonly ImageTextAdderCommunicator _imageTextAdderCommunicator;
-        public ImageAgregationService(IImageRepository imageRepository, ITemplateRepository templateRepository, ILogger<ImageAgregationService> logger, IS3Service s3Service, ImageGenerationCommunicator imageGenerationCommunicator, ImageVerifierCommunicator imageVerifierCommunicator, ImageTextAdderCommunicator imageTextAdderCommunicator)
+        private readonly IDistributedCache _cache;
+        public ImageAgregationService(IImageRepository imageRepository, 
+        ITemplateRepository templateRepository, 
+        ILogger<ImageAgregationService> logger,
+        IS3Service s3Service, 
+        ImageGenerationCommunicator imageGenerationCommunicator, 
+        ImageVerifierCommunicator imageVerifierCommunicator, 
+        ImageTextAdderCommunicator imageTextAdderCommunicator, 
+        IDistributedCache cache)
         {
             _imageRepository = imageRepository;
             _templateRepository = templateRepository;
@@ -35,56 +44,63 @@ namespace ImageAgregationService.Services.ImageAgregationService
             _imageGenerationCommunicator = imageGenerationCommunicator;
             _imageVerifierCommunicator = imageVerifierCommunicator;
             _imageTextAdderCommunicator = imageTextAdderCommunicator;
+            _cache = cache;
         }
         
         public async Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
         {  
             try
             {
-                var IsTemplateExist = await _templateRepository.IsTemplateExist(generateImageRequest.TemplateName);
-                if(!IsTemplateExist)
+                var cachedImage = await _cache.GetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text);
+                if(cachedImage==null)
                 {
-                    _logger.LogError("Template not found");
-                    throw new TemplateNotFoundException("Template not found");
-                }
-                string prompt =await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
-                GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
-                AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
-                image.ImageByteArray = imageWithText.ImageByteArray;
-                if(!await _s3Service.UploadImageToS3Bucket(image))
-                {  
-                    _logger.LogError("Error uploading image");
-                    throw new UploadImageException("Error uploading image");
-                }
-                ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
-                TemplateModel currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
-                imageModel.Template = currentTemplate;
-                imageModel.Mark = new MarkModel(){ Name = "none"};
-                await _imageRepository.CreateImage(imageModel);
-                _logger.LogInformation("Saved image model: " + image.ImageName);
-                return new ImageDto()
-                {
-                    Name = imageModel.Name,
-                    Url = imageModel.Url,
-                    mark = new MarkDto()
+                    var IsTemplateExist = await _templateRepository.IsTemplateExist(generateImageRequest.TemplateName);
+                    if(!IsTemplateExist)
                     {
-                        Name = imageModel.Mark.Name
-                    },
-                    template = new TemplateDto()
-                    {
-                        Name = imageModel.Template.Name
+                        _logger.LogError("Template not found");
+                        throw new TemplateNotFoundException("Template not found");
                     }
-                };
+                    string prompt =await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
+                    GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
+                    AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
+                    image.ImageByteArray = imageWithText.ImageByteArray;
+                    if(!await _s3Service.UploadImageToS3Bucket(image))
+                    {  
+                        _logger.LogError("Error uploading image");
+                        throw new UploadImageException("Error uploading image");
+                    }
+                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
+                    TemplateModel currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
+                    imageModel.Template = currentTemplate;
+                    imageModel.Mark = new MarkModel(){ Name = "none"};
+                    await _imageRepository.CreateImage(imageModel);
+                    _logger.LogInformation("Saved image model: " + image.ImageName);
+                    ImageDto filalImage = new ImageDto()
+                    {
+                        Name = imageModel.Name,
+                        Url = imageModel.Url,
+                        mark = new MarkDto()
+                        {
+                            Name = imageModel.Mark.Name
+                        },
+                        template = new TemplateDto()
+                        {
+                            Name = imageModel.Template.Name
+                        }
+                    };
+                    await _cache.SetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text, JsonConvert.SerializeObject(filalImage));
+                    return filalImage;
+                }
+                _logger.LogInformation("Found cached image" + generateImageRequest.TemplateName+generateImageRequest.Text);
+                return JsonConvert.DeserializeObject<ImageDto>(cachedImage);
+                
             }
             catch (Exception e)
             {
-                if(!(e is MyKafkaException))
-                {
-                    _logger.LogError(e,"Error generating image");
-                    throw new GenerateImageException("Error generating image",e);
-                }
-                _logger.LogError(e,"Kafka error");
-                throw new GenerateImageException("Error sending image response",e);
+               
+                _logger.LogError(e,"Error generating image");
+                throw new GenerateImageException("Error generating image",e);
+                
             }
         }
         private async Task<GenerateImageResponse> SendGenerateImageRequest(string prompt)
@@ -136,6 +152,43 @@ namespace ImageAgregationService.Services.ImageAgregationService
             {
                 _logger.LogError(ex, "Failed to generate prompt");
                 throw new GeneratePromptException("Failed to generate prompt", ex);
+            }
+        }
+
+        public async Task<List<ImageDto>> GetImages(GetImagesKafkaRequest getImagesRequest)
+        {
+            try 
+            {
+                List<ImageDto> imageDtos = new List<ImageDto>();
+                foreach (var imageName in getImagesRequest.Ids)
+                {
+                    ImageModel image = await _imageRepository.GetImageById(imageName);
+                    if(image == null)
+                    {
+                        _logger.LogError("Image not found! Image name: " + imageName);
+                        throw new ImageNotFoundException("Image not found! Image name: " + imageName);
+                    }
+                    imageDtos.Add(new ImageDto()
+                    {
+                        Id = image.Id,
+                        Name = image.Name,
+                        Url = image.Url,
+                        mark = new MarkDto()
+                        {
+                            Name = image.Mark.Name
+                        },
+                        template = new TemplateDto()
+                        {
+                            Name = image.Template.Name
+                        }
+                    });
+                }
+                return imageDtos;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get images!");
+                throw new GetImagesException("Failed to get images!", ex);
             }
         }
     }

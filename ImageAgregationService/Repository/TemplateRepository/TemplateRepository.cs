@@ -26,7 +26,7 @@ namespace ImageAgregationService.Repository
             {
                 if(!await IsTemplateExist(template))
                 {
-                    await CreateTemplate(new TemplateModel{Name = template});
+                    await CreateTemplate(new TemplateModel{Name = template, DefaultPrompt="testprompt"});
                 }
             }
         }

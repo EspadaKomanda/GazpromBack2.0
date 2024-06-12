@@ -60,7 +60,35 @@ namespace ImageAgregationService.Services
         {
             return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
         }
-
+        public async Task<bool> DeleteBucket(string bucketName)
+        {
+            try
+            {
+                DeleteBucketResponse response = await _s3Client.DeleteBucketAsync(bucketName);
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    _logger.LogInformation($"Bucket {bucketName} deleted!");
+                    return true;
+                }
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogError($"Bucket {bucketName} not found!");
+                    throw new BucketNotFoundException($"Bucket {bucketName} not found!");
+                }
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    _logger.LogError($"Failed to delete bucket {bucketName}!");
+                    throw new DeleteBucketException($"Failed to delete bucket {bucketName}!");
+                }
+                _logger.LogError($"Failed to delete bucket {bucketName}, unhandled exception!");
+                throw new DeleteBucketException($"Failed to delete bucket {bucketName}, unhandled exception!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to delete bucket {bucketName}!");
+                throw new DeleteBucketException($"Failed to delete bucket {bucketName}!", ex);
+            }
+        }
         public async Task<bool> DeleteImageFromS3Bucket(string fileName, string bucketName)
         {
             try
