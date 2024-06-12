@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package imagetextadder;
+
+message AddTextToImageRequest {
+  bytes image_byte_array = 1;
+  string text = 2;
+}
+
+message  AddTextToImageResponse {
+  
+  bytes image_byte_array = 1;
+  
+  string error = 2;
+}
+
+service ImageTextAdder {
+  rpc AddTextToImage(AddTextToImageRequest) returns (AddTextToImageResponse);
+}
