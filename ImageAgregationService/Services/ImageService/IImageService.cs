@@ -1,4 +1,0 @@
-namespace ImageAgregationService.Services.ImageService
-{
-    
-}

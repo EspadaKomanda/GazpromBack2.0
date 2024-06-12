@@ -19,6 +19,12 @@ namespace ImageAgregationService.Repository.ImageRepository
             return await Save();
         }
 
+        public async Task<bool> DeleteImagesByTemplate(Guid id)
+        {
+            _db.Images.RemoveRange(_db.Images.Where(x => x.TemplateId == id));
+            return await Save();
+        }
+
         public async Task<ImageModel> GetImageById(Guid id)
         {
             return await _db.Images.FindAsync(id);

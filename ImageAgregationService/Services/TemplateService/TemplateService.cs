@@ -3,6 +3,7 @@ using ImageAgregationService.Models;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Repository;
+using ImageAgregationService.Repository.ImageRepository;
 
 namespace ImageAgregationService.Services.TemplateService
 {
@@ -10,6 +11,8 @@ namespace ImageAgregationService.Services.TemplateService
     {
         private readonly ILogger<TemplateService> _logger;
         private readonly ITemplateRepository _templateRepository;
+        private readonly IImageRepository _imageRepository;
+        private readonly IS3Service _s3Service;
         public TemplateService(ILogger<TemplateService> logger, ITemplateRepository templateRepository)
         {
             _logger = logger;
@@ -20,6 +23,7 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                
                 return await _templateRepository.CreateTemplate(new TemplateModel
                 {
                     Name = templateDto.Name,
@@ -37,8 +41,25 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
-                return await _templateRepository.DeleteTemplate(await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name));
-                 
+                if(!await _templateRepository.IsTemplateExist(deleteTemplateRequest.Name))
+                {
+                    _logger.LogError("Template not found!");
+                    throw new TemplateNotFoundException("Template not found!");
+                }
+                TemplateModel template = await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name);
+                if(await _templateRepository.DeleteTemplate(template))
+                {
+                    var images = _imageRepository.GetImages().Where(x => x.TemplateId == template.Guid);
+                    foreach (var image in images)
+                    {
+                        await _s3Service.DeleteImageFromS3Bucket(image.Name, template.Name);
+                    }
+                    await _imageRepository.DeleteImagesByTemplate(template.Guid);
+                    return true;
+                }
+
+                throw new DeleteTemplateException("Failed to delete template!, template name: " + deleteTemplateRequest.Name);
+                
             }
             catch (Exception ex)
             {
