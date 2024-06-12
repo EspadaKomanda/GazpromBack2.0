@@ -1,4 +1,5 @@
 using DialogService.Database.Models;
+using DialogService.Enums;
 using DialogService.Models.Requests;
 using DialogService.Repositories;
 
@@ -10,12 +11,11 @@ public class DialogsService(IDialogRepository dialogRepo, IMessageRepository mes
     private readonly IMessageRepository _messageRepo = messageRepo;
     private readonly ILogger<DialogsService> _logger = logger;
 
-    public async Task<bool> ClearDialog(long ownerId, long id)
+    public async Task<bool> ClearDialog(long ownerId, Sender accessor, long id)
     {
-
         var dialog = await _dialogRepo.GetDialogById(id);
 
-        if (dialog == null || dialog.OwnerId != ownerId)
+        if (dialog == null || dialog.OwnerId != ownerId && accessor == Sender.User)
         {
             _logger.LogError("Dialog {Id} not found for user {OwnerId}", id, ownerId);
             throw new DialogNotFoundException();
@@ -34,7 +34,7 @@ public class DialogsService(IDialogRepository dialogRepo, IMessageRepository mes
         }
     }
 
-    public async Task<Dialog> CreateDialog(long ownerId, CreateDialogRequest request)
+    public async Task<Dialog> CreateDialog(long ownerId, Sender accessor, CreateDialogRequest request)
     {
         try
         {
@@ -54,12 +54,12 @@ public class DialogsService(IDialogRepository dialogRepo, IMessageRepository mes
         }
     }
 
-    public async Task<bool> DeleteDialog(long ownerId, long id)
+    public async Task<bool> DeleteDialog(long ownerId, Sender accessor, long id)
     {
         
         var dialog = await _dialogRepo.GetDialogById(id);
 
-        if (dialog == null || dialog.OwnerId != ownerId)
+        if (dialog == null || dialog.OwnerId != ownerId && accessor == Sender.User)
         {
             _logger.LogError("Dialog {Id} not found for user {OwnerId}", id, ownerId);
             throw new DialogNotFoundException();
@@ -78,12 +78,12 @@ public class DialogsService(IDialogRepository dialogRepo, IMessageRepository mes
         }
     }
 
-    public async Task<List<Message>?> GetDialogMessages(long ownerId, long dialogId)
+    public async Task<List<Message>?> GetDialogMessages(long ownerId, Sender accessor, long dialogId)
     {
 
         var dialog = await _dialogRepo.GetDialogById(dialogId);
 
-        if (dialog == null || dialog.OwnerId != ownerId)
+        if (dialog == null || dialog.OwnerId != ownerId && accessor == Sender.User)
         {
             _logger.LogError("Dialog {Id} not found for user {OwnerId}", dialogId, ownerId);
             throw new DialogNotFoundException();
@@ -100,7 +100,7 @@ public class DialogsService(IDialogRepository dialogRepo, IMessageRepository mes
         }
     }
 
-    public async Task<List<Dialog>?> GetDialogsByOwnerId(long ownerId)
+    public async Task<List<Dialog>?> GetDialogsByOwnerId(long ownerId, Sender accessor)
     {
         try
         {

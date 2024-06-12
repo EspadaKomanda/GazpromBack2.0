@@ -12,7 +12,7 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
     private readonly IDialogRepository _dialogRepo = dialogRepo;
     private readonly ILogger<MessagesService> _logger = logger;
 
-    public async Task<bool> DeleteMessage(long ownerId, DeleteMessageRequest obj)
+    public async Task<bool> DeleteMessage(long ownerId, Sender accessor, DeleteMessageRequest obj)
     {
         var message = await _messageRepo.GetMessageById(obj.MessageId);
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
@@ -42,7 +42,7 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
         }
     }
 
-    public async Task<Message> EditMessage(long ownerId, EditMessageRequest obj)
+    public async Task<Message> EditMessage(long ownerId, Sender accessor, EditMessageRequest obj)
     {
         var message = await _messageRepo.GetMessageById(obj.MessageId);
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
@@ -82,7 +82,7 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
         }
     }
 
-    public async Task<Message> GetMessage(long ownerId, GetMessageRequest obj)
+    public async Task<Message> GetMessage(long ownerId, Sender accessor, GetMessageRequest obj)
     {
         var message = await _messageRepo.GetMessageById(obj.MessageId);
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
@@ -103,12 +103,12 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
         return message;
     }
 
-    public Task<bool> RegenerateMessage(long ownerId, long messageId)
+    public Task<bool> RegenerateMessage(long ownerId, Sender accessor, long messageId)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<Message> SendMessage(long ownerId, SendMessageRequest obj)
+    public async Task<Message> SendMessage(long ownerId, Sender accessor, SendMessageRequest obj)
     {
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
         try
@@ -132,7 +132,9 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
 
         var message = new Message
         {
-            Sender = Sender.User,
+            Sender = accessor == Sender.User ? Sender.User : obj.Sender,
+            Style = accessor == Sender.User ? MessageStyle.Normal : obj.Style,
+            ImageId = accessor == Sender.User ? null : obj.ImageId,
             Text = obj.Text,
             DialogId = obj.DialogId
         };
