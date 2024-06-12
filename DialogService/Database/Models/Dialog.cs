@@ -8,4 +8,6 @@ public class Dialog
     public long Id { get; set; }
     [Required]
     public string Name { get; set; } = null!;
+    [Required]
+    public long OwnerId { get; set; }    
 }
