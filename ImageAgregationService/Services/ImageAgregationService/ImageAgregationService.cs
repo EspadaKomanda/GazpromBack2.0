@@ -91,6 +91,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     await _cache.SetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text, JsonConvert.SerializeObject(filalImage));
                     return filalImage;
                 }
+                _logger.LogInformation("Found cached image" + generateImageRequest.TemplateName+generateImageRequest.Text);
                 return JsonConvert.DeserializeObject<ImageDto>(cachedImage);
                 
             }
