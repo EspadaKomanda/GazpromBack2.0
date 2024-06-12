@@ -6,8 +6,10 @@ using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
+using ImageAgregationService.Models.RequestModels.Mark;
 using ImageAgregationService.Services;
 using ImageAgregationService.Services.ImageAgregationService;
+using ImageAgregationService.Services.MarkService;
 using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.KafkaException;
 using KafkaTestLib.KafkaException.ConsumerException;
@@ -24,6 +26,7 @@ public class KafkaService
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IImageAgregationService _imageAgregationService;
     private readonly ITemplateService _templateService;
+    private readonly IMarkService _markService;
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService)
     {
@@ -250,14 +253,69 @@ public class KafkaService
                                 throw new ConsumerRecievedMessageInvalidException("Unhandled error",e);
                             }
                             break;
-                        case "getImages":
+                        case "updateMark":
                             try
                             {
-
+                                UpdateMarkKafkaRequest updateMark = JsonConvert.DeserializeObject<UpdateMarkKafkaRequest>(result.Message.Value);
+                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(await _markService.UpdateMark(updateMark)),
+                                Headers = new Headers(){
+                                            new Header("method", Encoding.UTF8.GetBytes("updateMark")),
+                                            new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))}}))
+                                {
+                                    _consumer.Commit(result);
+                                }
+                                
                             }
                             catch (Exception e)
                             {
-
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw e;
+                                }
+                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                        Value = "Error updating mark",
+                                        Headers = new Headers(){
+                                                    new Header("method", Encoding.UTF8.GetBytes("updateMark")),
+                                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
+                                                    new Header("error", Encoding.UTF8.GetBytes("Error updating mark"))
+                                        }});
+                                _consumer.Commit(result);
+                                throw new ConsumerRecievedMessageInvalidException("Unhandled error",e);
+                            }
+                            break;
+                        case "getImages":
+                            try
+                            {
+                                GetImagesKafkaRequest getImages = JsonConvert.DeserializeObject<GetImagesKafkaRequest>(result.Message.Value);
+                                List<ImageDto> images = await _imageAgregationService.GetImages(getImages);
+                                if(images!=null)
+                                {
+                                    if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(images),
+                                    Headers = new Headers(){
+                                                new Header("method", Encoding.UTF8.GetBytes("getImages")),
+                                                new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))}}))
+                                    {
+                                        _consumer.Commit(result);
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw e;
+                                }
+                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                        Value = "Error getting images",
+                                        Headers = new Headers(){
+                                                    new Header("method", Encoding.UTF8.GetBytes("getImages")),
+                                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
+                                                    new Header("error", Encoding.UTF8.GetBytes("Error getting images"))     
+                                }});
                             }
                             break;
                         default:

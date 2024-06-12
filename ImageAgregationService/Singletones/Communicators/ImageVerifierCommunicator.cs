@@ -11,7 +11,7 @@ namespace ImageAgregationService.Singletones.Communicators
         public ImageVerifierCommunicator(ILogger<ImageVerifierCommunicator> logger)
         {
             _logger = logger;
-            GrpcChannel channel = GrpcChannel.ForAddress($"");
+            GrpcChannel channel = GrpcChannel.ForAddress($"https://localhost:5001");
             _imageVerifierClient = new ImageVerifier.ImageVerifierClient(channel);
         }
         public async Task<VerifyImageResponse> VerifyImage(GenerateImageResponse imageResponse)

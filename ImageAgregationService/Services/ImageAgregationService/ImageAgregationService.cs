@@ -78,13 +78,10 @@ namespace ImageAgregationService.Services.ImageAgregationService
             }
             catch (Exception e)
             {
-                if(!(e is MyKafkaException))
-                {
-                    _logger.LogError(e,"Error generating image");
-                    throw new GenerateImageException("Error generating image",e);
-                }
-                _logger.LogError(e,"Kafka error");
-                throw new GenerateImageException("Error sending image response",e);
+               
+                _logger.LogError(e,"Error generating image");
+                throw new GenerateImageException("Error generating image",e);
+                
             }
         }
         private async Task<GenerateImageResponse> SendGenerateImageRequest(string prompt)
@@ -136,6 +133,43 @@ namespace ImageAgregationService.Services.ImageAgregationService
             {
                 _logger.LogError(ex, "Failed to generate prompt");
                 throw new GeneratePromptException("Failed to generate prompt", ex);
+            }
+        }
+
+        public async Task<List<ImageDto>> GetImages(GetImagesKafkaRequest getImagesRequest)
+        {
+            try 
+            {
+                List<ImageDto> imageDtos = new List<ImageDto>();
+                foreach (var imageName in getImagesRequest.Ids)
+                {
+                    ImageModel image = await _imageRepository.GetImageById(imageName);
+                    if(image == null)
+                    {
+                        _logger.LogError("Image not found! Image name: " + imageName);
+                        throw new ImageNotFoundException("Image not found! Image name: " + imageName);
+                    }
+                    imageDtos.Add(new ImageDto()
+                    {
+                        Id = image.Id,
+                        Name = image.Name,
+                        Url = image.Url,
+                        mark = new MarkDto()
+                        {
+                            Name = image.Mark.Name
+                        },
+                        template = new TemplateDto()
+                        {
+                            Name = image.Template.Name
+                        }
+                    });
+                }
+                return imageDtos;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get images!");
+                throw new GetImagesException("Failed to get images!", ex);
             }
         }
     }

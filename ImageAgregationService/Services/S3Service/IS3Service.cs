@@ -8,7 +8,7 @@ namespace ImageAgregationService.Services
     public interface IS3Service
     {
         Task ConfigureBuckets();
-        Task UploadImageToS3Bucket(GenerateImageResponse generateImageResponse);
+        Task<bool> UploadImageToS3Bucket(GenerateImageResponse generateImageResponse);
         Task<bool> DeleteImageFromS3Bucket(string fileName, string bucketName);
         Task<ImageModel> GetImageFromS3Bucket(string fileName, string bucketName);
     }

@@ -1,5 +1,6 @@
 using ImageAgregationService.Database;
 using ImageAgregationService.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ImageAgregationService.Repository.ImageRepository
 {
@@ -32,7 +33,7 @@ namespace ImageAgregationService.Repository.ImageRepository
 
         public IQueryable<ImageModel> GetImages()
         {
-            return _db.Images;
+            return _db.Images.Include(x=>x.Mark);
         }
 
         public async Task<bool> Save()

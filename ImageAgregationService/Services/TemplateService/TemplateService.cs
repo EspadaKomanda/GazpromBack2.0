@@ -4,6 +4,7 @@ using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Repository;
 using ImageAgregationService.Repository.ImageRepository;
+using ImageAgregationService.Repository.MarkRepository;
 
 namespace ImageAgregationService.Services.TemplateService
 {
@@ -12,11 +13,15 @@ namespace ImageAgregationService.Services.TemplateService
         private readonly ILogger<TemplateService> _logger;
         private readonly ITemplateRepository _templateRepository;
         private readonly IImageRepository _imageRepository;
+        private readonly IMarkRepository _markRepository;
         private readonly IS3Service _s3Service;
-        public TemplateService(ILogger<TemplateService> logger, ITemplateRepository templateRepository)
+        public TemplateService(ILogger<TemplateService> logger, ITemplateRepository templateRepository, IImageRepository imageRepository, IMarkRepository markRepository, IS3Service s3Service)
         {
             _logger = logger;
             _templateRepository = templateRepository;
+            _imageRepository = imageRepository;
+            _markRepository = markRepository;
+            _s3Service = s3Service;
         }
 
         public async Task<bool> AddTemplate(TemplateDto templateDto)
@@ -47,9 +52,14 @@ namespace ImageAgregationService.Services.TemplateService
                     throw new TemplateNotFoundException("Template not found!");
                 }
                 TemplateModel template = await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name);
+                var images = _imageRepository.GetImages().Where(x => x.TemplateId == template.Guid);
+                var marks = images.Select(x => x.Mark).ToList();
                 if(await _templateRepository.DeleteTemplate(template))
                 {
-                    var images = _imageRepository.GetImages().Where(x => x.TemplateId == template.Guid);
+                    foreach (var mark in marks)
+                    {
+                        await _markRepository.DeleteMark(mark.Guid);
+                    }
                     foreach (var image in images)
                     {
                         await _s3Service.DeleteImageFromS3Bucket(image.Name, template.Name);
