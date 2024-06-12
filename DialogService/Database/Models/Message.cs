@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DialogService.Enums;
 
 namespace DialogService.Database.Models;
 
@@ -13,4 +14,6 @@ public class Message
     [Required]
     public Dialog Dialog { get; set; } = null!;
     public long DialogId { get; set; }
+    [Required]
+    public Sender Sender { get; set; }
 }

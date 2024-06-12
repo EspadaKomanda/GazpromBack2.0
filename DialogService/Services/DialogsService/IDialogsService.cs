@@ -1,4 +1,4 @@
-namespace DialogService.Services.DialogService;
+namespace DialogService.Services.DialogsService;
 
 public interface IDialogsService
 {
