@@ -1,7 +1,9 @@
+using ImageAgregationService.Models.DTO;
+
 namespace ImageAgregationService.Models.RequestModels
 {
     public class GetTemplateKafkaRequest
     {
-        public List<string> TemplateNames {get;set;}
+        public List<TemplateDto> TemplateNames {get;set;}
     }
 }
