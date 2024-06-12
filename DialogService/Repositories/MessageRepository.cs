@@ -14,6 +14,13 @@ public class MessageRepository(ApplicationContext db) : IMessageRepository
         return await Save();
     }
 
+    public async Task<bool> ClearAllInDialog(long dialogId)
+    {
+        var messages = _db.Messages.Where(x => x.DialogId == dialogId);
+        _db.Messages.RemoveRange(messages);
+        return await Save();
+    }
+
     public async Task<bool> DeleteMessage(Message obj)
     {
         _db.Messages.Remove(obj);

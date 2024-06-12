@@ -16,4 +16,6 @@ public class Message
     public long DialogId { get; set; }
     [Required]
     public Sender Sender { get; set; }
+    [Required]
+    public MessageStyle Style { get; set; } = MessageStyle.Normal;
 }

@@ -9,6 +9,8 @@ using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
 using DialogService.Repositories;
+using DialogService.Services.DialogsService;
+using DialogService.Services.MessagesService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,8 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 builder.Services.AddTransient<IDialogRepository, DialogRepository>();
 builder.Services.AddTransient<IMessageRepository, MessageRepository>();
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddTransient<IDialogsService, DialogsService>();
+builder.Services.AddTransient<IMessagesService, MessagesService>();
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()
