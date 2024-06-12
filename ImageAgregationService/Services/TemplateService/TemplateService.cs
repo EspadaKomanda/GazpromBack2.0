@@ -58,7 +58,7 @@ namespace ImageAgregationService.Services.TemplateService
                 {
                     foreach (var mark in marks)
                     {
-                        await _markRepository.DeleteMark(mark.Guid);
+                        await _markRepository.DeleteMark(mark);
                     }
                     foreach (var image in images)
                     {
