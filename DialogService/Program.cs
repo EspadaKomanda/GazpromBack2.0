@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+using DialogService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 });
 
 // Services
+builder.Services.AddTransient<IDialogRepository, DialogRepository>();
+builder.Services.AddTransient<IMessageRepository, MessageRepository>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 
 // Authorization
