@@ -74,6 +74,12 @@ public class KafkaService
                     {
                         if(result.Message.Key == messageId.ToString())
                         {
+                            if(result.Message.Headers.Any(x => x.Key.Equals("errors")))
+                            {
+                                var errors = Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("errors")).GetValueBytes());
+                                _logger.LogError(errors);
+                                throw new ConsumerException(errors);
+                            }
                             if(Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("method")).GetValueBytes()) == methodName)
                             {
                                 var message = JsonConvert.DeserializeObject<T>(result.Message.Value);
