@@ -74,17 +74,21 @@ public class KafkaService
             throw e;
         }
     }
-    public async Task Consume()
+    public async Task Consume(string topicName, Guid MessageId)
     {
         try
         {
-            while (true)
+            bool flag = true;
+            while (flag)
             {
                 ConsumeResult<string, string> result = _consumer.Consume(5000);
 
                 if (result != null)
                 {
-                    
+                    if(result.Message.Key == MessageId.ToString())
+                    {
+                        
+                    }
                 }
             }
         }
