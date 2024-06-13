@@ -4,57 +4,35 @@ using System.Text;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry.Serdes;
-using DialogService.Models.Generic.Responses;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Models.RequestModels.Mark;
-using ImageAgregationService.Services;
-using ImageAgregationService.Services.ImageAgregationService;
-using ImageAgregationService.Services.MarkService;
-using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.KafkaException;
 using KafkaTestLib.KafkaException.ConsumerException;
 using KafkaTestLib.Models;
 using Newtonsoft.Json;
 namespace KafkaTestLib.Kafka;
 
-public class KafkaService
+public class KafkaService : IDisposable
 {
-    private string _topicName;
     private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
-    private readonly IImageAgregationService _imageAgregationService;
-    private readonly ITemplateService _templateService;
-    private readonly IMarkService _markService;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager)
     {
-        _topicName = "imageRequestsTopic";
         _consumer = consumer;
         _producer = producer;
         _logger = logger;
-        _kafkaTopicManager = kafkaTopicManager;
-        _imageAgregationService = imageAgregationService;
-        _templateService = templateService;
-        bool isTopicAvailable = IsTopicAvailable().Result;
-        if(isTopicAvailable)
-        {
-            _consumer.Subscribe(_topicName);
-        }
-        else
-        {
-            _logger.LogError("Unable to subscribe to topic");
-            throw new ConsumerTopicUnavailableException("Topic unavailable");
-        }
+        
     }
 
-    private async Task<bool> IsTopicAvailable()
+    private async Task<bool> IsTopicAvailable(string topicName)
     {
         try
         {
-             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(_topicName);
+             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(topicName);
                 if (IsTopicExists)
                 {
                     return IsTopicExists;
@@ -74,7 +52,7 @@ public class KafkaService
             throw e;
         }
     }
-    public async Task Consume()
+    public T Consume<T>(string topicName, Guid messageId, string methodName)
     {
         try
         {
@@ -84,7 +62,31 @@ public class KafkaService
 
                 if (result != null)
                 {
-                    
+                    try
+                    {
+                        if(result.Message.Key == messageId.ToString())
+                        {
+                            if(Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("method")).GetValueBytes()) == methodName)
+                            {
+                                var message = JsonConvert.DeserializeObject<T>(result.Message.Value);
+                                _consumer.Commit(result);
+                                return message;
+                            }
+                            _logger.LogError("Wrong message method");
+                            throw new ConsumerException("Wrong message method");
+                        }   
+                    }
+                    catch (Exception e)
+                    {
+                        if (!(e is MyKafkaException))
+                        {
+                            _logger.LogError(e,"Consumer error");
+                            throw new ConsumerException("Consumer error ",e);
+                        }
+                        _logger.LogError(e,"Unhandled error");
+                        throw;
+                    }
+                   
                 }
             }
         }
@@ -98,15 +100,15 @@ public class KafkaService
             else
             {
                 _logger.LogError(ex,"Unhandled error");
-                throw ex;
+                throw;
             }
         }
     }
     public void Dispose()
     {
-        _consumer.Dispose();
+        
     }
-     public async Task<bool> Produce( string topicName,Message<string, string> message)
+     public async Task<bool> Produce(string topicName, Message<string, string> message)
     {
         try
         {

@@ -37,6 +37,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
         {  
             try
             {
+                
                 var cachedImage = await _cache.GetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text);
                 if(cachedImage==null)
                 {
