@@ -33,7 +33,7 @@ builder.Services.AddSingleton(new AdminClientBuilder(
         BootstrapServers = "90.156.218.15:29092"
     }
 ).Build());
-builder.Services.AddSingleton<KafkaProducer>()
+builder.Services.AddSingleton<KafkaService>()
                 .AddSingleton<KafkaTopicManager>();
 builder.Services.AddControllers();
 var app = builder.Build();

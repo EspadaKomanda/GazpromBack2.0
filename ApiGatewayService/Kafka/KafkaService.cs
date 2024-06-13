@@ -13,7 +13,7 @@ using KafkaTestLib.Models;
 using Newtonsoft.Json;
 namespace KafkaTestLib.Kafka;
 
-public class KafkaService : IDisposable
+public class KafkaService 
 {
     private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
@@ -28,11 +28,11 @@ public class KafkaService : IDisposable
         
     }
 
-    private async Task<bool> IsTopicAvailable(string topicName)
+   private bool IsTopicAvailable(string topicName)
     {
         try
         {
-             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(topicName);
+             bool IsTopicExists = _kafkaTopicManager.CheckTopicExists(topicName);
                 if (IsTopicExists)
                 {
                     return IsTopicExists;
@@ -43,19 +43,27 @@ public class KafkaService : IDisposable
         }
         catch (Exception e)
         {
-            if (!(e is MyKafkaException))
+            if (e is not MyKafkaException)
             {
                 _logger.LogError(e,"Error checking topic");
                 throw new ConsumerException("Error checking topic",e);
             }
             _logger.LogError(e,"Unhandled error");
-            throw e;
+            throw;
         }
     }
-    public T Consume<T>(string topicName, Guid messageId, string methodName)
+
+    public async Task<T> Consume<T>(string topicName, Guid messageId, string methodName)
     {
         try
         {
+            if (!IsTopicAvailable(topicName))
+            {
+                _logger.LogError("Unable to subscribe to topic");
+                throw new ConsumerTopicUnavailableException("Topic unavailable");
+            }
+
+            _consumer.Subscribe(topicName);
             while (true)
             {
                 ConsumeResult<string, string> result = _consumer.Consume(5000);
@@ -104,41 +112,37 @@ public class KafkaService : IDisposable
             }
         }
     }
-    public void Dispose()
-    {
-        
-    }
-     public async Task<bool> Produce(string topicName, Message<string, string> message)
+    public async Task<bool> Produce( string topicName,Message<string, string> message)
     {
         try
         {
-            bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(topicName);
+            bool IsTopicExists = IsTopicAvailable(topicName);
             if (IsTopicExists)
             {
                 var deliveryResult = await _producer.ProduceAsync(topicName, message);
                 if (deliveryResult.Status == PersistenceStatus.Persisted)
                 {
     
-                    _logger.LogInformation("Message delivery status: Persisted " + deliveryResult.Value);
+                    _logger.LogInformation("Message delivery status: Persisted {Result}", deliveryResult.Value);
                     return true;
                 }
                 
-                _logger.LogError("Message delivery status: Not persisted " + deliveryResult.Value);
+                _logger.LogError("Message delivery status: Not persisted {Result}", deliveryResult.Value);
                 throw new MessageProduceException("Message delivery status: Not persisted" + deliveryResult.Value);
                 
             }
             
-            bool IsTopicCreated = await _kafkaTopicManager.CreateTopic(topicName, Convert.ToInt32(Environment.GetEnvironmentVariable("PARTITIONS_STANDART")), Convert.ToInt16(Environment.GetEnvironmentVariable("REPLICATION_FACTOR_STANDART")));
+            bool IsTopicCreated = _kafkaTopicManager.CreateTopic(topicName, Convert.ToInt32(Environment.GetEnvironmentVariable("PARTITIONS_STANDART")), Convert.ToInt16(Environment.GetEnvironmentVariable("REPLICATION_FACTOR_STANDART")));
             if (IsTopicCreated)
             {
                 var deliveryResult = await _producer.ProduceAsync(topicName, message);
                 if (deliveryResult.Status == PersistenceStatus.Persisted)
                 {
-                    _logger.LogInformation("Message delivery status: Persisted "+ deliveryResult.Value);
+                    _logger.LogInformation("Message delivery status: Persisted {Result}", deliveryResult.Value);
                     return true;
                 }
                 
-                _logger.LogError("Message delivery status: Not persisted "+ deliveryResult.Value);
+                _logger.LogError("Message delivery status: Not persisted {Result}", deliveryResult.Value);
                 throw new MessageProduceException("Message delivery status: Not persisted");
                 
             }
@@ -147,16 +151,13 @@ public class KafkaService : IDisposable
         }
         catch (Exception e)
         {
-            if (!(e is MyKafkaException))
+            if (e is not MyKafkaException)
             {
                 _logger.LogError(e, "Error producing message");
                 throw new ProducerException("Error producing message",e);
             }
-            throw e;
+            throw;
         }
-       
-       
-        
     }
 
     

@@ -4,16 +4,17 @@ using KafkaTestLib.KafkaException;
 
 namespace KafkaTestLib.Kafka;
 
-public class KafkaTopicManager : IDisposable
+public class KafkaTopicManager(IAdminClient adminClient)
 {
-    
-    private IAdminClient _adminClient;
-    public KafkaTopicManager(IAdminClient adminClient)
-    {
-        _adminClient = adminClient;
-    }
+    private readonly IAdminClient _adminClient = adminClient;
 
-    public async Task<bool> CheckTopicExists(string topicName)
+    /// <summary>
+    /// Checks if a Kafka topic with the specified name exists.
+    /// </summary>
+    /// <param name="topicName">The name of the topic to check.</param>
+    /// <returns>True if the topic exists, false otherwise.</returns>
+    /// <exception cref="CheckTopicException">Thrown if the topic check fails.</exception>
+    public bool CheckTopicExists(string topicName)
     {
         try
         {
@@ -32,14 +33,22 @@ public class KafkaTopicManager : IDisposable
         }
     }
 
-    public async Task<bool> CreateTopic(string topicName, int numPartitions, short replicationFactor)
+    /// <summary>
+    /// Creates a new Kafka topic with the specified name, number of partitions, and replication factor.
+    /// </summary>
+    /// <param name="topicName">The name of the topic to create.</param>
+    /// <param name="numPartitions">The number of partitions for the topic.</param>
+    /// <param name="replicationFactor">The replication factor for the topic.</param>
+    /// <returns>True if the topic was successfully created, false otherwise.</returns>
+    /// <exception cref="CreateTopicException">Thrown if the topic creation fails.</exception>
+    public bool CreateTopic(string topicName, int numPartitions, short replicationFactor)
     {
         try
         {
        
             var result = _adminClient.CreateTopicsAsync(new TopicSpecification[] 
             { 
-                new TopicSpecification { 
+                new() { 
                     Name = topicName,
                     NumPartitions = numPartitions, 
                     ReplicationFactor =  replicationFactor,   
@@ -61,8 +70,5 @@ public class KafkaTopicManager : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _adminClient.Dispose();
-    }
+  
 }
