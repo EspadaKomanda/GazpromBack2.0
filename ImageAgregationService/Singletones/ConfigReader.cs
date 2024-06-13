@@ -16,6 +16,11 @@ namespace ImageAgregationService.Singletones
                     json = await sr.ReadToEndAsync().ConfigureAwait(false);
                 var configJson = JsonConvert.DeserializeObject<List<string>>(json);
       
+                if (configJson == null)
+                {
+                    throw new GetConfigException("configJson was null");
+                }
+
                 return configJson;
             }
             catch (Exception ex)

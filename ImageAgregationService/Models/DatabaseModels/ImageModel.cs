@@ -8,16 +8,16 @@ namespace ImageAgregationService.Models
         [Key]
         public Guid Id {get;set;}
         [Required]
-        public string Name {get;set;}
+        public string Name {get;set;} = null!;
         [Required]
-        public string Url {get;set;}
+        public string Url {get;set;} = null!;
         [Required]
-        public string Prompt {get;set;}
+        public string Prompt {get;set;} = null!;
         public Guid TemplateId {get;set;}
         [ForeignKey("TemplateId")]
-        public TemplateModel Template {get;set;}
+        public TemplateModel Template {get;set;} = null!;
         public Guid MarkId {get;set;}
         [ForeignKey("MarkId")]
-        public MarkModel Mark {get;set;}
+        public MarkModel Mark {get;set;} = null!;
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ImageAgregationService.Repository
 {
-   
     public class TemplateRepository(ApplicationContext db) : ITemplateRepository
     {
         private readonly ApplicationContext _db = db;
@@ -24,14 +23,14 @@ namespace ImageAgregationService.Repository
         {
             foreach (var template in templates)
             {
-                if(!await IsTemplateExist(template))
+                if(!await DoesTemplateExist(template))
                 {
                     await CreateTemplate(new TemplateModel{Name = template, DefaultPrompt="testprompt"});
                 }
             }
         }
 
-        public async Task<TemplateModel> GetTemplateByName(string name)
+        public async Task<TemplateModel?> GetTemplateByName(string name)
         {
             return await _db.Templates.FirstOrDefaultAsync(x => x.Name == name);
         }
@@ -41,7 +40,7 @@ namespace ImageAgregationService.Repository
             return _db.Templates;
         }
 
-        public async Task<bool> IsTemplateExist(string name)
+        public async Task<bool> DoesTemplateExist(string name)
         {
             return await _db.Templates.AnyAsync(x => x.Name == name);
         }

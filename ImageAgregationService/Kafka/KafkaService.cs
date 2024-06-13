@@ -1,25 +1,18 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
+﻿using System.Text;
 using Confluent.Kafka;
-using Confluent.Kafka.SyncOverAsync;
-using Confluent.SchemaRegistry.Serdes;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Models.RequestModels.Mark;
-using ImageAgregationService.Services;
 using ImageAgregationService.Services.ImageAgregationService;
 using ImageAgregationService.Services.MarkService;
 using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.KafkaException;
 using KafkaTestLib.KafkaException.ConsumerException;
-using KafkaTestLib.Models;
 using Newtonsoft.Json;
 namespace KafkaTestLib.Kafka;
 
 public class KafkaService
 {
-    private string _topicName;
     private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaService> _logger;
@@ -28,19 +21,19 @@ public class KafkaService
     private readonly ITemplateService _templateService;
     private readonly IMarkService _markService;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService, IMarkService markService)
     {
-        _topicName = "imageRequestsTopic";
         _consumer = consumer;
         _producer = producer;
         _logger = logger;
         _kafkaTopicManager = kafkaTopicManager;
         _imageAgregationService = imageAgregationService;
         _templateService = templateService;
-        bool isTopicAvailable = IsTopicAvailable().Result;
+        _markService = markService;
+        bool isTopicAvailable = IsTopicAvailable("imageRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe(_topicName);
+            _consumer.Subscribe("imageRequestsTopic");
         }
         else
         {
@@ -49,11 +42,11 @@ public class KafkaService
         }
     }
 
-    private async Task<bool> IsTopicAvailable()
+    private bool IsTopicAvailable(string topicName)
     {
         try
         {
-             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(_topicName);
+             bool IsTopicExists = _kafkaTopicManager.CheckTopicExists(topicName);
                 if (IsTopicExists)
                 {
                     return IsTopicExists;
@@ -64,13 +57,13 @@ public class KafkaService
         }
         catch (Exception e)
         {
-            if (!(e is MyKafkaException))
+            if (e is not MyKafkaException)
             {
                 _logger.LogError(e,"Error checking topic");
                 throw new ConsumerException("Error checking topic",e);
             }
             _logger.LogError(e,"Unhandled error");
-            throw e;
+            throw;
         }
     }
     public async Task Consume()
@@ -350,7 +343,7 @@ public class KafkaService
     {
         try
         {
-            bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(topicName);
+            bool IsTopicExists = IsTopicAvailable(topicName);
             if (IsTopicExists)
             {
                 var deliveryResult = await _producer.ProduceAsync(topicName, message);
@@ -366,7 +359,7 @@ public class KafkaService
                 
             }
             
-            bool IsTopicCreated = await _kafkaTopicManager.CreateTopic(topicName, Convert.ToInt32(Environment.GetEnvironmentVariable("PARTITIONS_STANDART")), Convert.ToInt16(Environment.GetEnvironmentVariable("REPLICATION_FACTOR_STANDART")));
+            bool IsTopicCreated = _kafkaTopicManager.CreateTopic(topicName, Convert.ToInt32(Environment.GetEnvironmentVariable("PARTITIONS_STANDART")), Convert.ToInt16(Environment.GetEnvironmentVariable("REPLICATION_FACTOR_STANDART")));
             if (IsTopicCreated)
             {
                 var deliveryResult = await _producer.ProduceAsync(topicName, message);
