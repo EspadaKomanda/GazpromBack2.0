@@ -63,7 +63,6 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     }
                     string prompt =await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
-                    //TODO: Change this, i need to add text first, also fix in python
                     AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
                     image.ImageByteArray = imageWithText.ImageByteArray;
                     if(!await _s3Service.UploadImageToS3Bucket(image))

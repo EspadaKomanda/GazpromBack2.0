@@ -4,7 +4,7 @@ using KafkaTestLib.KafkaException;
 
 namespace KafkaTestLib.Kafka;
 
-public class KafkaTopicManager 
+public class KafkaTopicManager : IDisposable
 {
     
     private IAdminClient _adminClient;
@@ -61,5 +61,8 @@ public class KafkaTopicManager
         }
     }
 
-  
+    public void Dispose()
+    {
+        _adminClient.Dispose();
+    }
 }
