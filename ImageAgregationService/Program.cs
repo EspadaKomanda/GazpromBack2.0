@@ -3,8 +3,6 @@ using Amazon;
 using Amazon.S3;
 using Confluent.Kafka;
 using ImageAgregationService.Database;
-using ImageAgregationService.Models;
-using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Repository;
 using ImageAgregationService.Repository.ImageRepository;
 using ImageAgregationService.Repository.MarkRepository;
@@ -16,14 +14,14 @@ using ImageAgregationService.Singletones;
 using ImageAgregationService.Singletones.Communicators;
 using KafkaTestLib.Kafka;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+
 var builder = WebApplication.CreateBuilder(args);
 configureLogging();
+
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddStackExchangeRedisCache(options => {
     options.Configuration = "83.166.239.45";
     options.InstanceName = "image_aggregation";
@@ -100,19 +98,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-
-
-
-var s3Service = app.Services.GetRequiredService<IS3Service>();
-await s3Service.ConfigureBuckets();
-using var scope = app.Services.CreateScope();
-var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
-var ConfigReader = app.Services.GetRequiredService<ConfigReader>();
-List<string> buckets = await ConfigReader.GetBuckets();
-await templateRepository.GenerateTemplates(buckets);
-var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
-await kafkaService.Consume();
+Thread thread = new(async () => {
+    var s3Service = app.Services.GetRequiredService<IS3Service>();
+    await s3Service.ConfigureBuckets();
+    using var scope = app.Services.CreateScope();
+    var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
+    var ConfigReader = app.Services.GetRequiredService<ConfigReader>();
+    List<string> buckets = await ConfigReader.GetBuckets();
+    await templateRepository.GenerateTemplates(buckets);
+    var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
+    await kafkaService.Consume();
+});
 
 app.Run();
 void configureLogging(){

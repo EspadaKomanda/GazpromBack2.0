@@ -28,6 +28,11 @@ public class JwtService : IJwtService
         }
     }
 
+    /// <summary>
+    /// Generates an access token for the specified user.
+    /// </summary>
+    /// <param name="user">The user for whom the access token is generated.</param>
+    /// <returns>The generated access token as a string.</returns>
     public string GenerateAccessToken(User user)
     {  
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -49,6 +54,11 @@ public class JwtService : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
+    /// <summary>
+    /// Generates a refresh token for the specified user.
+    /// </summary>
+    /// <param name="user">The user for whom the refresh token is generated.</param>
+    /// <returns>The generated refresh token as a string.</returns>
     public string GenerateRefreshToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -71,6 +81,12 @@ public class JwtService : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
+    /// <summary>
+    /// Validates the access token and extracts the username from it if valid.
+    /// Returns a tuple indicating whether the token is valid and the extracted username.
+    /// </summary>
+    /// <param name="token">The access token to validate.</param>
+    /// <returns>A tuple indicating whether the token is valid and the extracted username.</returns>
     public Tuple<bool, string> ValidateAccessToken(string? token)
     {
         try
@@ -112,6 +128,12 @@ public class JwtService : IJwtService
         }  
     }
 
+    /// <summary>
+    /// Validates the refresh token and extracts the username from it if valid.
+    /// Returns a tuple indicating whether the token is valid and the extracted username.
+    /// </summary>
+    /// <param name="token">The refresh token to validate.</param>
+    /// <returns>A tuple indicating whether the token is valid and the extracted username.</returns>
     public async Task<Tuple<bool, string>> ValidateRefreshToken(string? token)
     {
         try

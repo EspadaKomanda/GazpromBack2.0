@@ -5,6 +5,5 @@ namespace ImageAgregationService.Exceptions.S3ServiceExceptions
         public UploadImageException() {}
         public UploadImageException(string message) : base(message) {}
         public UploadImageException(string message, System.Exception inner) : base(message, inner) {}
-        public UploadImageException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context) {}
     }
 }

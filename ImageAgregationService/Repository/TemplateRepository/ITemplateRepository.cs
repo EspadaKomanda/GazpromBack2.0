@@ -11,8 +11,8 @@ namespace ImageAgregationService.Repository
         public Task<bool> CreateTemplate(TemplateModel obj);
         public Task<bool> UpdateTemplate(TemplateModel obj);
         public Task<bool> DeleteTemplate(TemplateModel obj);
-        public Task<TemplateModel> GetTemplateByName(string name);
-        public Task<bool> IsTemplateExist(string name);
+        public Task<TemplateModel?> GetTemplateByName(string name);
+        public Task<bool> DoesTemplateExist(string name);
         public Task<bool> Save();
     }
 }

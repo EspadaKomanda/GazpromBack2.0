@@ -9,7 +9,7 @@ namespace ImageAgregationService.Models
     {
         [Key]
         public Guid Guid {get;set;}
-        public string Name {get;set;}
-        public string DefaultPrompt {get;set;}
+        public string Name {get;set;} = null!;
+        public string DefaultPrompt {get;set;} = null!;
     }
 }

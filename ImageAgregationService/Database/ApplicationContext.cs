@@ -7,9 +7,9 @@ namespace ImageAgregationService.Database
     public class ApplicationContext : DbContext
     {
         private readonly ConfigReader _configReader;
-        public DbSet<ImageModel> Images { get; set; }
-        public DbSet<TemplateModel> Templates {get;set;}
-        public DbSet<MarkModel> Marks {get;set;}
+        public DbSet<ImageModel> Images { get; set; } = null!;
+        public DbSet<TemplateModel> Templates {get;set;} = null!;
+        public DbSet<MarkModel> Marks {get;set;} = null!;
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options, ConfigReader configReader) : base(options)
         {

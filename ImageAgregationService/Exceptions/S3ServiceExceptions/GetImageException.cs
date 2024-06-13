@@ -6,8 +6,5 @@ namespace ImageAgregationService.Exceptions.S3ServiceExceptions
         public GetImageException() { }
         public GetImageException(string message) : base(message) { }
         public GetImageException(string message, System.Exception inner) : base(message, inner) { }
-        protected GetImageException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

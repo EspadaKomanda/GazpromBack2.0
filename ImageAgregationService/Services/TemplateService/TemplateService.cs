@@ -8,27 +8,18 @@ using ImageAgregationService.Repository.MarkRepository;
 
 namespace ImageAgregationService.Services.TemplateService
 {
-    public class TemplateService : ITemplateService
+    public class TemplateService(ILogger<TemplateService> logger, ITemplateRepository templateRepository, IImageRepository imageRepository, IMarkRepository markRepository, IS3Service s3Service) : ITemplateService
     {
-        private readonly ILogger<TemplateService> _logger;
-        private readonly ITemplateRepository _templateRepository;
-        private readonly IImageRepository _imageRepository;
-        private readonly IMarkRepository _markRepository;
-        private readonly IS3Service _s3Service;
-        public TemplateService(ILogger<TemplateService> logger, ITemplateRepository templateRepository, IImageRepository imageRepository, IMarkRepository markRepository, IS3Service s3Service)
-        {
-            _logger = logger;
-            _templateRepository = templateRepository;
-            _imageRepository = imageRepository;
-            _markRepository = markRepository;
-            _s3Service = s3Service;
-        }
+        private readonly ILogger<TemplateService> _logger = logger;
+        private readonly ITemplateRepository _templateRepository = templateRepository;
+        private readonly IImageRepository _imageRepository = imageRepository;
+        private readonly IMarkRepository _markRepository = markRepository;
+        private readonly IS3Service _s3Service = s3Service;
 
         public async Task<bool> AddTemplate(TemplateDto templateDto)
         {
             try
             {
-                
                 return await _templateRepository.CreateTemplate(new TemplateModel
                 {
                     Name = templateDto.Name,
@@ -46,12 +37,12 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
-                if(!await _templateRepository.IsTemplateExist(deleteTemplateRequest.Name))
+                var template = await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name);
+                if (template == null)
                 {
                     _logger.LogError("Template not found!");
                     throw new TemplateNotFoundException("Template not found!");
                 }
-                TemplateModel template = await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name);
                 var images = _imageRepository.GetImages().Where(x => x.TemplateId == template.Guid);
                 var marks = images.Select(x => x.Mark).ToList();
                 if(await _templateRepository.DeleteTemplate(template))
@@ -69,7 +60,6 @@ namespace ImageAgregationService.Services.TemplateService
                 }
 
                 throw new DeleteTemplateException("Failed to delete template!, template name: " + deleteTemplateRequest.Name);
-                
             }
             catch (Exception ex)
             {
@@ -82,13 +72,14 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
-                List<TemplateDto> templateDtos = new List<TemplateDto>();
+                List<TemplateDto> templateDtos = [];
                 foreach (var templateName in getTemplateRequest.TemplateNames)
                 {
                     var template = await _templateRepository.GetTemplateByName(templateName.Name);
                     if(template == null)
                     {
-                        _logger.LogError("Template not found! Template name: " + templateName);
+                        _logger.LogError("Template not found! Template name: {Name}", templateName);
+
                         throw new TemplateNotFoundException("Template not found! Template name: " + templateName);
                     }
                     templateDtos.Add(new TemplateDto
@@ -112,6 +103,13 @@ namespace ImageAgregationService.Services.TemplateService
             try
             {
                 var template = await _templateRepository.GetTemplateByName(modifyTemplateRequest.OldName);
+
+                if (template == null)
+                 {
+                    _logger.LogError("Template not found! Template name: {Name}", modifyTemplateRequest.OldName);
+                    throw new TemplateNotFoundException("Template not found! Template name: " + modifyTemplateRequest.OldName);
+                }
+
                 template.DefaultPrompt = modifyTemplateRequest.NewTemplate.DefaultPrompt;
                 template.Name = modifyTemplateRequest.NewTemplate.Name; 
                 if(await _templateRepository.UpdateTemplate(template))

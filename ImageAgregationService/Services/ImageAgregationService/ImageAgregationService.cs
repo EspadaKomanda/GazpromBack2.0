@@ -10,43 +10,29 @@ using ImageAgregationService.Singletones.Communicators;
 using Imagegenerator;
 using Imagetextadder;
 using Imageverifier;
-using KafkaTestLib.Kafka;
-using KafkaTestLib.KafkaException;
-using KafkaTestLib.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
 namespace ImageAgregationService.Services.ImageAgregationService
 {
-    public class ImageAgregationService : IImageAgregationService
+    public class ImageAgregationService(IImageRepository imageRepository,
+    ITemplateRepository templateRepository,
+    ILogger<ImageAgregationService> logger,
+    IS3Service s3Service,
+    ImageGenerationCommunicator imageGenerationCommunicator,
+    ImageVerifierCommunicator imageVerifierCommunicator,
+    ImageTextAdderCommunicator imageTextAdderCommunicator,
+    IDistributedCache cache) : IImageAgregationService
     {
-        private readonly IImageRepository _imageRepository;
-        private readonly ITemplateRepository _templateRepository;
-        private readonly ILogger<ImageAgregationService> _logger;
-        private readonly IS3Service _s3Service;
-        private readonly ImageGenerationCommunicator _imageGenerationCommunicator;
-        private readonly ImageVerifierCommunicator _imageVerifierCommunicator;
-        private readonly ImageTextAdderCommunicator _imageTextAdderCommunicator;
-        private readonly IDistributedCache _cache;
-        public ImageAgregationService(IImageRepository imageRepository, 
-        ITemplateRepository templateRepository, 
-        ILogger<ImageAgregationService> logger,
-        IS3Service s3Service, 
-        ImageGenerationCommunicator imageGenerationCommunicator, 
-        ImageVerifierCommunicator imageVerifierCommunicator, 
-        ImageTextAdderCommunicator imageTextAdderCommunicator, 
-        IDistributedCache cache)
-        {
-            _imageRepository = imageRepository;
-            _templateRepository = templateRepository;
-            _logger = logger;
-            _s3Service = s3Service;
-            _imageGenerationCommunicator = imageGenerationCommunicator;
-            _imageVerifierCommunicator = imageVerifierCommunicator;
-            _imageTextAdderCommunicator = imageTextAdderCommunicator;
-            _cache = cache;
-        }
-        
+        private readonly IImageRepository _imageRepository = imageRepository;
+        private readonly ITemplateRepository _templateRepository = templateRepository;
+        private readonly ILogger<ImageAgregationService> _logger = logger;
+        private readonly IS3Service _s3Service = s3Service;
+        private readonly ImageGenerationCommunicator _imageGenerationCommunicator = imageGenerationCommunicator;
+        private readonly ImageVerifierCommunicator _imageVerifierCommunicator = imageVerifierCommunicator;
+        private readonly ImageTextAdderCommunicator _imageTextAdderCommunicator = imageTextAdderCommunicator;
+        private readonly IDistributedCache _cache = cache;
+
         public async Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
         {  
             try
@@ -54,13 +40,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 var cachedImage = await _cache.GetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text);
                 if(cachedImage==null)
                 {
-                    var IsTemplateExist = await _templateRepository.IsTemplateExist(generateImageRequest.TemplateName);
-                    if(!IsTemplateExist)
-                    {
-                        _logger.LogError("Template not found");
-                        throw new TemplateNotFoundException("Template not found");
-                    }
-                    string prompt =await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
+                    string prompt = await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
                     AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
                     image.ImageByteArray = imageWithText.ImageByteArray;
@@ -70,20 +50,25 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         throw new UploadImageException("Error uploading image");
                     }
                     ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
-                    TemplateModel currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
+                    var currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
+                    if(currentTemplate==null)
+                    {
+                        _logger.LogError("Template not found!");
+                        throw new TemplateNotFoundException("Template not found!");
+                    }
                     imageModel.Template = currentTemplate;
                     imageModel.Mark = new MarkModel(){ Name = "none"};
                     await _imageRepository.CreateImage(imageModel);
-                    _logger.LogInformation("Saved image model: " + image.ImageName);
-                    ImageDto filalImage = new ImageDto()
+                    _logger.LogInformation("Saved image model: {Name}", image.ImageName);
+                    ImageDto filalImage = new()
                     {
                         Name = imageModel.Name,
                         Url = imageModel.Url,
-                        mark = new MarkDto()
+                        Mark = new MarkDto()
                         {
                             Name = imageModel.Mark.Name
                         },
-                        template = new TemplateDto()
+                        Template = new TemplateDto()
                         {
                             Name = imageModel.Template.Name
                         }
@@ -91,8 +76,17 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     await _cache.SetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text, JsonConvert.SerializeObject(filalImage));
                     return filalImage;
                 }
-                _logger.LogInformation("Found cached image" + generateImageRequest.TemplateName+generateImageRequest.Text);
-                return JsonConvert.DeserializeObject<ImageDto>(cachedImage);
+                _logger.LogInformation("Found cached image {Image}", generateImageRequest.TemplateName+generateImageRequest.Text);
+
+                var cachedImageDto = JsonConvert.DeserializeObject<ImageDto>(cachedImage);
+
+                if (cachedImageDto == null)
+                {
+                    _logger.LogError("Error deserializing cached image (cachedImageDto was null)");
+                    throw new NullReferenceException("Error deserializing (cached image cachedImageDto was null)");
+                }
+
+                return cachedImageDto;
                 
             }
             catch (Exception e)
@@ -108,10 +102,10 @@ namespace ImageAgregationService.Services.ImageAgregationService
             GenerateImageResponse image = await _imageGenerationCommunicator.GenerateImage(prompt);
             if(image.Error != "")
             {
-                _logger.LogError("Failed to generate image" + image.Error);
+                _logger.LogError("Failed to generate image: {Error}", image.Error);
                 throw new GenerateImageException("Failed to generate image");
             }
-            _logger.LogInformation("Generated image: " + image.ImageName + " with prompt: " + prompt);
+            _logger.LogInformation("Generated image: {Name} with prompt: {Prompt}", image.ImageName, prompt);
             return image;
         }
         private async Task<VerifyImageResponse> SendVerifyImageRequest(GenerateImageResponse image)
@@ -119,7 +113,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
             VerifyImageResponse verifyImageResponse = await _imageVerifierCommunicator.VerifyImage(image);
             if(verifyImageResponse.Error != "")
             {
-                _logger.LogError("Failed to verify image" + verifyImageResponse.Error);
+                _logger.LogError("Failed to verify image: {Error}", verifyImageResponse.Error);
                 throw new VerifyImageException("Failed to verify image");
             }
             return verifyImageResponse;
@@ -129,7 +123,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
             AddTextToImageResponse addTextToImageResponse = await _imageTextAdderCommunicator.AddText(verifiedImage, text);
             if(addTextToImageResponse.Error != "")
             {
-                _logger.LogError("Failed to add text to image" + addTextToImageResponse.Error);
+                _logger.LogError("Failed to add text to image: {Error}", addTextToImageResponse.Error);
                 throw new AddTextToImageException("Failed to add text to image");
             }
             return addTextToImageResponse;
@@ -138,14 +132,14 @@ namespace ImageAgregationService.Services.ImageAgregationService
         {
             try
             {
-                TemplateModel template = await _templateRepository.GetTemplateByName(templateName);
+                TemplateModel? template = await _templateRepository.GetTemplateByName(templateName);
                 if(template == null)
                 {
                     _logger.LogError("Template not found");
                     throw new TemplateNotFoundException("Template not found");
                 }
                 string prompt = template.DefaultPrompt + text;
-                _logger.LogInformation("Generated prompt: " + prompt);
+                _logger.LogInformation("Generated prompt: {Prompt}", prompt);
                 return prompt;
             }
             catch(Exception ex)
@@ -159,13 +153,13 @@ namespace ImageAgregationService.Services.ImageAgregationService
         {
             try 
             {
-                List<ImageDto> imageDtos = new List<ImageDto>();
+                List<ImageDto> imageDtos = [];
                 foreach (var imageName in getImagesRequest.Ids)
                 {
-                    ImageModel image = await _imageRepository.GetImageById(imageName);
+                    ImageModel? image = await _imageRepository.GetImageById(imageName);
                     if(image == null)
                     {
-                        _logger.LogError("Image not found! Image name: " + imageName);
+                        _logger.LogError("Image not found! Image name: {Name}", imageName);
                         throw new ImageNotFoundException("Image not found! Image name: " + imageName);
                     }
                     imageDtos.Add(new ImageDto()
@@ -173,11 +167,11 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         Id = image.Id,
                         Name = image.Name,
                         Url = image.Url,
-                        mark = new MarkDto()
+                        Mark = new MarkDto()
                         {
                             Name = image.Mark.Name
                         },
-                        template = new TemplateDto()
+                        Template = new TemplateDto()
                         {
                             Name = image.Template.Name
                         }
