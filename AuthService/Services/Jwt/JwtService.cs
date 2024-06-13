@@ -1,22 +1,22 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AuthService.Database.Models;
-using AuthService.Repositories;
+using AuthService.Services.UserService;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Services.Jwt;
 
 public class JwtService : IJwtService
 {
-    private readonly IUserRepository _userRepo;
     private readonly string _secretKey;
     private readonly string _issuer;
     private readonly string _audience;
+    private readonly IUserService _userService;
     private readonly ILogger<JwtService> _logger;
-    public JwtService(IUserRepository userRepo, ILogger<JwtService> logger)
+    public JwtService(ILogger<JwtService> logger, IUserService userService)
     {
         _logger = logger;
-        _userRepo = userRepo;
+        _userService = userService;
 
         _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
         _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
@@ -145,7 +145,7 @@ public class JwtService : IJwtService
                 return new (false, "");
             }
 
-            var user = await _userRepo.GetUserByUsername(username);
+            var user = await _userService.GetUserByUsername(username);
             if (user == null)
             {
                 return new (false, "");

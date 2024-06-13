@@ -34,12 +34,4 @@
     <PackageReference Include="Serilog.Sinks.OpenSearch" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ContentWithTargetPath Include="Data\**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>Data/%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
-    </ContentWithTargetPath>
-  </ItemGroup>
-
-
 </Project>
