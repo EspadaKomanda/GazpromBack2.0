@@ -1,12 +1,12 @@
 using System.Reflection;
-using System.Security.Claims;
-using AuthService.Authentication;
-using AuthService.Services.Jwt;
-using AuthService.Services.Account;
-using Microsoft.AspNetCore.Authentication;
+using UserService.Database;
+using UserService.Repositories;
+using UserService.Services.Account;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+using UserService.Services.UserInfoService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,26 +14,25 @@ configureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
 
-builder.Services.AddTransient<IJwtService, JwtService>();
-builder.Services.AddTransient<IAccountService, AccountService>();
-
-// Authorization
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Access", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Access");
-    })
-    .AddPolicy("Refresh", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
-    });
-    
-builder.Services.AddAuthentication("default")
-.AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
-{
-    Console.WriteLine(options.ToString());
+// Database
+builder.Services.AddDbContext<ApplicationContext>(x => {
+    var Hostname=Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? "localhost";
+    var Port=Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+    var Name=Environment.GetEnvironmentVariable("DB_NAME") ?? "postgres";
+    var Username=Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres";
+    var Password=Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
+    x.UseNpgsql($"Server={Hostname}:{Port};Database={Name};Uid={Username};Pwd={Password};");
 });
 
+// Services
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddTransient<IRoleRepository, RoleRepository>();
+builder.Services.AddTransient<IRegistrationCodeRepository, RegistrationCodeRepository>();
+builder.Services.AddTransient<IAccountService, AccountService>();
+builder.Services.AddTransient<IUserInfoService, UserInfoService>();
+
+// Logs
 builder.Host.UseSerilog();
 
 var app = builder.Build();
