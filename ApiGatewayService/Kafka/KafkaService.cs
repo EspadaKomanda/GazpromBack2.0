@@ -15,37 +15,24 @@ namespace KafkaTestLib.Kafka;
 
 public class KafkaService : IDisposable
 {
-    private readonly string _topicName;
     private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, string topicName)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager)
     {
-        _topicName = topicName;
         _consumer = consumer;
         _producer = producer;
         _logger = logger;
-        _kafkaTopicManager = kafkaTopicManager;
-        bool isTopicAvailable = IsTopicAvailable().Result;
-        if(isTopicAvailable)
-        {
-            _consumer.Subscribe(_topicName);
-        }
-        else
-        {
-            _logger.LogError("Unable to subscribe to topic");
-            throw new ConsumerTopicUnavailableException("Topic unavailable");
-        }
-
+        
     }
 
-    private async Task<bool> IsTopicAvailable()
+    private async Task<bool> IsTopicAvailable(string topicName)
     {
         try
         {
-             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(_topicName);
+             bool IsTopicExists = await _kafkaTopicManager.CheckTopicExists(topicName);
                 if (IsTopicExists)
                 {
                     return IsTopicExists;
