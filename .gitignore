@@ -10,3 +10,7 @@ local.session.sql
 # csharp
 bin
 obj
+
+#ml
+.Lora
+*.safetensors
