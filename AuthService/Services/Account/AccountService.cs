@@ -6,7 +6,6 @@ using AuthService.Exceptions.User;
 
 namespace AuthService.Services.Account;
 
-//TODO: Implement methods that contact the UserService
 public class AccountService(IJwtService jwtService, IUserService userService, ILogger<AccountService> logger) : IAccountService
 {
     private readonly IJwtService _jwtService = jwtService;
@@ -15,12 +14,12 @@ public class AccountService(IJwtService jwtService, IUserService userService, IL
 
     public async Task<AccountTokensResponse> AccountLogin(AccountLoginRequest request)
     {
-
         var user = await _userService.GetUserByUsername(request.Username) ?? throw new UserDoesNotExistException();
 
         var SuccessLogin = await _userService.Login(request);
         if (!SuccessLogin)
         {
+            _logger.LogWarning("Invalid login credentials for user {Username}", request.Username);
             throw new UserInvalidPasswordException();
         }
 
@@ -30,6 +29,7 @@ public class AccountService(IJwtService jwtService, IUserService userService, IL
             RefreshToken = _jwtService.GenerateRefreshToken(user)
         };
 
+        _logger.LogInformation("User {Username} logged in successfully", request.Username);
         return response;
     }
 
@@ -39,6 +39,7 @@ public class AccountService(IJwtService jwtService, IUserService userService, IL
 
         if (!validationInfo.Item1)
         {
+            _logger.LogWarning("Invalid refresh token for user {Username}", validationInfo.Item2);
             throw new InvalidTokenException("Invalid refresh token");
         }
 
@@ -49,6 +50,8 @@ public class AccountService(IJwtService jwtService, IUserService userService, IL
             AccessToken = _jwtService.GenerateAccessToken(user),
             RefreshToken = _jwtService.GenerateRefreshToken(user)
         };
+
+        _logger.LogInformation("Refreshed token for user {Username}", validationInfo.Item2);
         return response;
     }
 }
