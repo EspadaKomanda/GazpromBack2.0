@@ -6,6 +6,8 @@ namespace UserService.Models.Account.Requests;
 public class AccountChangePasswordRequest
 {
     [Required]
+    public string Username { get; set; } = null!;
+    [Required]
     public string OldPassword { get; set; } = null!;
     [Required]
     [ValidPassword]

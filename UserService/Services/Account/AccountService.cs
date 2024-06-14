@@ -159,9 +159,9 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
         return true;
     }
     
-    public async Task<bool> AccountChangePassword(string username, AccountChangePasswordRequest request)
+    public async Task<bool> AccountChangePassword(AccountChangePasswordRequest request)
     {
-        var user = await _userRepo.GetUserByUsername(username);
+        var user = await _userRepo.GetUserByUsername(request.Username);
         if (user == null)
         {
             throw new TokenException("Could not find the user for the respective token in the database");

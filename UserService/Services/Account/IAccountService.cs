@@ -31,8 +31,7 @@ public interface IAccountService
     /// <summary>
     /// Changes the password of a user.
     /// </summary>
-    /// <param name="username">The username of the user.</param>
     /// <param name="request">The change password request.</param>
     /// <returns>True if password was changed successfully, otherwise false or throws an exception.</returns>
-    Task<bool> AccountChangePassword(string username, AccountChangePasswordRequest request);
+    Task<bool> AccountChangePassword(AccountChangePasswordRequest request);
 }
