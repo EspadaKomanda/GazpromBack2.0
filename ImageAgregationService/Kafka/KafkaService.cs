@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Confluent.Kafka;
+using DialogService.Models.Generic.Responses;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Models.RequestModels.Mark;
@@ -112,7 +113,7 @@ public class KafkaService
                                 _ = await Produce("imageResponsesTopic", new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
-                                    Value = "Error generating image",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error generating image"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("generateImage")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -126,9 +127,7 @@ public class KafkaService
                         case "getTemplates":
                             try
                             {
-                                List<TemplateDto> templates = await _templateService.GetTemplates(
-                                    JsonConvert.DeserializeObject<GetTemplateKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("Deserialization failed")
-                                    ) ?? throw new NullReferenceException("Error getting templates");
+                                List<TemplateDto> templates = await _templateService.GetTemplates() ?? throw new NullReferenceException("Error getting templates");
 
                                 if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
                                         Value = JsonConvert.SerializeObject(templates),
@@ -150,7 +149,7 @@ public class KafkaService
                                 _ = await Produce("imageResponsesTopic", new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
-                                    Value = "Error getting templates",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting templates"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("getTemplates")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -168,7 +167,7 @@ public class KafkaService
                                 if (await _templateService.AddTemplate(template))
                                 {
                                     if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                    Value = "Template added",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template added"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
@@ -186,7 +185,7 @@ public class KafkaService
                                     throw;
                                 }
                                 await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                    Value = "Error adding template",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error adding template"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -204,7 +203,7 @@ public class KafkaService
                                 if(await _templateService.DeleteTemplate(template))
                                 {
                                     if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
-                                    Value = "Template deleted",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template deleted"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("deleteTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))]}))
@@ -222,7 +221,7 @@ public class KafkaService
                                     throw;
                                 }
                                 await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                        Value = "Error deleting template",
+                                        Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting template"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
                                             new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -255,7 +254,7 @@ public class KafkaService
                                     throw;
                                 }
                                 await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                        Value = "Error deleting template",
+                                        Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting template"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
                                             new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -288,7 +287,7 @@ public class KafkaService
                                     throw;
                                 }
                                 await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                    Value = "Error updating mark",
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error updating mark"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("updateMark")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
@@ -324,7 +323,7 @@ public class KafkaService
                                     throw;
                                 }
                                 await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
-                                        Value = "Error getting images",
+                                        Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting images"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("getImages")),
                                             new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
