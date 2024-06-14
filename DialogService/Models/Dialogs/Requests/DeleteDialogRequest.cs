@@ -3,12 +3,14 @@ using DialogService.Enums;
 
 namespace DialogService.Models.Requests;
 
-public class CreateDialogRequest
+public class DeleteDialogRequest
 {
     [Required]
     public long OwnerId { get; set;}
+    
     [Required]
     public Sender Accessor { get; set;}
+
     [Required]
-    public string Name { get; set; } = null!;
+    public long Id { get; set;}
 }

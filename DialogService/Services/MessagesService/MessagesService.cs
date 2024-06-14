@@ -12,20 +12,20 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
     private readonly IDialogRepository _dialogRepo = dialogRepo;
     private readonly ILogger<MessagesService> _logger = logger;
 
-    public async Task<bool> DeleteMessage(long ownerId, Sender accessor, DeleteMessageRequest obj)
+    public async Task<bool> DeleteMessage(DeleteMessageRequest obj)
     {
         var message = await _messageRepo.GetMessageById(obj.MessageId);
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
         try
         {
-            if (dialog == null || dialog.OwnerId != ownerId || message == null || dialog.Id != message.DialogId)
+            if (dialog == null || dialog.OwnerId != obj.OwnerId || message == null || dialog.Id != message.DialogId)
             {
                 throw new MessageNotFoundException();
             }
         }
         catch (MessageNotFoundException e)
         {
-            _logger.LogError(e, "Message {Id} being attempted to be deleted by {OwnerId} for dialog {DialogId} is not owned or does not exist", obj.MessageId, ownerId, obj.DialogId);
+            _logger.LogError(e, "Message {Id} being attempted to be deleted by {OwnerId} for dialog {DialogId} is not owned or does not exist", obj.MessageId, obj.OwnerId, obj.DialogId);
             throw;
         }
 
@@ -42,61 +42,23 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
         }
     }
 
-    public async Task<Message> EditMessage(long ownerId, Sender accessor, EditMessageRequest obj)
+   
+
+    public async Task<Message> GetMessage(GetMessageRequest obj)
     {
         var message = await _messageRepo.GetMessageById(obj.MessageId);
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
 
         try
         {
-            if (dialog == null || dialog.OwnerId != ownerId || message == null || dialog.Id != message.DialogId)
+            if (dialog == null || dialog.OwnerId != obj.OwnerId || message == null || dialog.Id != message.DialogId)
             {
                 throw new MessageNotFoundException();
             }
         }
         catch (MessageNotFoundException e)
         {
-            _logger.LogError(e, "Message {Id} being attempted to be edited by {OwnerId} for dialog {DialogId} is not owned or does not exist", obj.MessageId, ownerId, obj.DialogId);
-            throw;
-        }
-
-        if (message.Sender != Sender.User)
-        {
-            _logger.LogError("Message {Id} being attempted to be edited by {OwnerId} for dialog {DialogId} is not owned by user", obj.MessageId, ownerId, obj.DialogId);
-            throw new MessageEditException("Message was not sent by user");
-        }
-
-        message.Text = obj.Text ?? message.Text;
-        message.ImageId = obj.ImageId ?? message.ImageId;
-
-        try
-        {
-            await _messageRepo.UpdateMessage(message);
-            _logger.LogInformation("Message {Id} updated", obj.MessageId);
-            return message;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while editing message {Id}", obj.MessageId);
-            throw;
-        }
-    }
-
-    public async Task<Message> GetMessage(long ownerId, Sender accessor, GetMessageRequest obj)
-    {
-        var message = await _messageRepo.GetMessageById(obj.MessageId);
-        var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
-
-        try
-        {
-            if (dialog == null || dialog.OwnerId != ownerId || message == null || dialog.Id != message.DialogId)
-            {
-                throw new MessageNotFoundException();
-            }
-        }
-        catch (MessageNotFoundException e)
-        {
-            _logger.LogError(e, "Message {Id} being attempted to be acquired by {OwnerId} for dialog {DialogId} is not owned or does not exist", obj.MessageId, ownerId, obj.DialogId);
+            _logger.LogError(e, "Message {Id} being attempted to be acquired by {OwnerId} for dialog {DialogId} is not owned or does not exist", obj.MessageId, obj.OwnerId, obj.DialogId);
             throw;
         }
 
@@ -108,33 +70,33 @@ public class MessagesService(IMessageRepository messageRepo, IDialogRepository d
         throw new NotImplementedException();
     }
 
-    public async Task<Message> SendMessage(long ownerId, Sender accessor, SendMessageRequest obj)
+    public async Task<Message> SendMessage(SendMessageRequest obj)
     {
         var dialog = await _dialogRepo.GetDialogById(obj.DialogId);
         try
         {
-            if (dialog == null || dialog.OwnerId != ownerId)
+            if (dialog == null || dialog.OwnerId != obj.OwnerId)
             {
                 throw new DialogNotFoundException();
             }
         }
         catch (MessageNotFoundException e)
         {
-            _logger.LogError(e, "Dialog {Id} not found for user {OwnerId}", obj.DialogId, ownerId);
+            _logger.LogError(e, "Dialog {Id} not found for user {OwnerId}", obj.DialogId, obj.OwnerId);
             throw;
         }
 
         if (obj.Text == null)
         {
-            _logger.LogError("Message being attempted to be sent by {OwnerId} for dialog {DialogId} has no text", ownerId, obj.DialogId);
+            _logger.LogError("Message being attempted to be sent by {OwnerId} for dialog {DialogId} has no text", obj.OwnerId, obj.DialogId);
             throw new MessageEmptyException();
         }
 
         var message = new Message
         {
-            Sender = accessor == Sender.User ? Sender.User : obj.Sender,
-            Style = accessor == Sender.User ? MessageStyle.Normal : obj.Style,
-            ImageId = accessor == Sender.User ? null : obj.ImageId,
+            Sender = obj.Accessor == Sender.User ? Sender.User : obj.Sender,
+            Style = obj.Accessor == Sender.User ? MessageStyle.Normal : obj.Style,
+            ImageId = obj.Accessor == Sender.User ? null : obj.ImageId ?? null,
             Text = obj.Text,
             DialogId = obj.DialogId
         };
