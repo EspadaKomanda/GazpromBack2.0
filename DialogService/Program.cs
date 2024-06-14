@@ -1,7 +1,5 @@
 using System.Reflection;
 using System.Security.Claims;
-using DialogService.Authentication;
-using DialogService.Services.Jwt;
 using DialogService.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +9,41 @@ using Serilog.Sinks.OpenSearch;
 using DialogService.Repositories;
 using DialogService.Services.DialogsService;
 using DialogService.Services.MessagesService;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
 configureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddSingleton(new ProducerBuilder<string,string>(
+    new ProducerConfig()
+    {
+        BootstrapServers = "90.156.218.15:29092",
+        Partitioner = Partitioner.Murmur2,
+        CompressionType = Confluent.Kafka.CompressionType.None,
+        ClientId="image-producer",
+        
+    }
+).Build());
 
+builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
+    new ConsumerConfig()
+    {
+        BootstrapServers = "90.156.218.15:29092",
+        GroupId = "image-consumer", 
+        EnableAutoCommit = true,
+        AutoCommitIntervalMs = 10,
+        EnableAutoOffsetStore = true,
+        AutoOffsetReset = AutoOffsetReset.Latest
+    }
+).Build());
+builder.Services.AddSingleton(new AdminClientBuilder(
+    new AdminClientConfig()
+    {
+        BootstrapServers = "90.156.218.15:29092"
+    }
+).Build());
 // Database
 builder.Services.AddDbContext<ApplicationContext>(x => {
     var Hostname=Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? "localhost";
@@ -31,22 +57,10 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 // Services
 builder.Services.AddTransient<IDialogRepository, DialogRepository>();
 builder.Services.AddTransient<IMessageRepository, MessageRepository>();
-builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IDialogsService, DialogsService>();
 builder.Services.AddTransient<IMessagesService, MessagesService>();
 
-// Authorization
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Access", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Access");
-    });
-    
-builder.Services.AddAuthentication("default")
-.AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
-{
-    Console.WriteLine(options.ToString());
-});
+
 
 builder.Services.AddControllers();
 
