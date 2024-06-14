@@ -62,11 +62,21 @@ public class KafkaService
                 _logger.LogError("Unable to subscribe to topic");
                 throw new ConsumerTopicUnavailableException("Topic unavailable");
             }
-
-            _consumer.Subscribe(topicName);
+            var localConsumer = new ConsumerBuilder<string,string>(
+                new ConsumerConfig()
+                {
+                    BootstrapServers = "90.156.218.15:29092",
+                    GroupId = "authConsumer"+Guid.NewGuid().ToString(), 
+                    EnableAutoCommit = true,
+                    AutoCommitIntervalMs = 10,
+                    EnableAutoOffsetStore = true,
+                    AutoOffsetReset = AutoOffsetReset.Latest
+                }
+            ).Build();
+            localConsumer.Subscribe(topicName);
             while (true)
             {
-                ConsumeResult<string, string> result = _consumer.Consume(5000);
+                ConsumeResult<string, string> result = localConsumer.Consume(5000);
 
                 if (result != null)
                 {
@@ -83,7 +93,7 @@ public class KafkaService
                             if(Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("method")).GetValueBytes()) == methodName)
                             {
                                 var message = JsonConvert.DeserializeObject<T>(result.Message.Value);
-                                _consumer.Commit(result);
+                                localConsumer.Commit(result);
                                 return message;
                             }
                             _logger.LogError("Wrong message method");
@@ -98,6 +108,7 @@ public class KafkaService
                             throw new ConsumerException("Consumer error ",e);
                         }
                         _logger.LogError(e,"Unhandled error");
+                        localConsumer.Commit(result);
                         throw;
                     }
                    

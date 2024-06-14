@@ -1,4 +1,4 @@
-namespace AuthService.Models.Generic.Responses;
+namespace DialogService.Models.Generic.Responses;
 
 public class MessageResponse
 {
