@@ -6,7 +6,7 @@ namespace DialogService.Services.MessagesService;
 
 public interface IMessagesService
 {
-    public Task<Message> SendMessage(long ownerId, Sender accessor, SendMessageRequest obj);
-    public Task<bool> RegenerateMessage(long ownerId, Sender accessor, long messageId);
-    public Task<Message> GetMessage(long ownerId, Sender accessor, GetMessageRequest obj);
+    public Task<Message> SendMessage(SendMessageRequest obj);
+    public Task<Message> GetMessage(GetMessageRequest obj);
+    public Task<bool> DeleteMessage(DeleteMessageRequest obj);
 }

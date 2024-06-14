@@ -68,20 +68,13 @@ namespace ImageAgregationService.Services.TemplateService
             }
         }
 
-        public async Task<List<TemplateDto>> GetTemplates(GetTemplateKafkaRequest getTemplateRequest)
+        public async Task<List<TemplateDto>> GetTemplates()
         {
             try
             {
                 List<TemplateDto> templateDtos = [];
-                foreach (var templateName in getTemplateRequest.TemplateNames)
+                foreach (var template in  _templateRepository.GetTemplates())
                 {
-                    var template = await _templateRepository.GetTemplateByName(templateName.Name);
-                    if(template == null)
-                    {
-                        _logger.LogError("Template not found! Template name: {Name}", templateName);
-
-                        throw new TemplateNotFoundException("Template not found! Template name: " + templateName);
-                    }
                     templateDtos.Add(new TemplateDto
                     {
                         Name = template.Name,

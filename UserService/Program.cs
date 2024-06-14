@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
 using UserService.Services.UserInfoService;
+using KafkaTestLib.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,13 +26,14 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 });
 
 // Services
-builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IUserProfileRepository, UserProfileRepository>();
-builder.Services.AddTransient<IRoleRepository, RoleRepository>();
-builder.Services.AddTransient<IRegistrationCodeRepository, RegistrationCodeRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddTransient<IUserInfoService, UserInfoService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
 builder.Services.AddTransient<IAccountService, AccountService>();
 builder.Services.AddTransient<IUserInfoService, UserInfoService>();
-
+builder.Services.AddScoped<KafkaService>();
 // Logs
 builder.Host.UseSerilog();
 

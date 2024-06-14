@@ -7,6 +7,10 @@ namespace DialogService.Models.Messages.Requests;
 public class SendMessageRequest
 {
     [Required]
+    public long OwnerId { get; set;}
+    [Required]
+    public Sender Accessor { get; set;}
+    [Required]
     public long DialogId { get; set; }
     public string? Text { get; set; }
     public long? ImageId { get; set; }
