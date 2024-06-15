@@ -27,10 +27,10 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _dialogsService = dialogsService;
         _messageService = messageService;
-        bool isTopicAvailable = IsTopicAvailable("accountRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable("dialogsRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("accountRequestsTopic");
+            _consumer.Subscribe("dialogsRequestsTopic");
         }
         else
         {

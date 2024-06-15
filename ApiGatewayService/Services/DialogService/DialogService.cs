@@ -24,7 +24,7 @@ public class DialogService : IDialogsService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("dialogRequestsTopic",
+            if(await _kafkaService.Produce("dialogResponsesTopic",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(clearDialogRequest),
@@ -34,7 +34,7 @@ public class DialogService : IDialogsService
                 }
             }))
             {
-                var dialog = await _kafkaService.Consume<MessageResponse>("dialogResponseTopic", messageId, "clearDialog");
+                var dialog = await _kafkaService.Consume<MessageResponse>("dialogResponsesTopic", messageId, "clearDialog");
                 _logger.LogInformation("Dialog cleared, Dialog: {Dialog}", JsonConvert.SerializeObject(clearDialogRequest));
                 return !dialog.Message.Contains("Error");
             }
@@ -53,23 +53,139 @@ public class DialogService : IDialogsService
         }   
     }
 
-    public Task<Dialog> CreateDialog(CreateDialogRequest request)
+    public async Task<Dialog> CreateDialog(CreateDialogRequest request)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Guid messageId = Guid.NewGuid();
+            if(await _kafkaService.Produce("dialogResponsesTopic",
+            new Confluent.Kafka.Message<string, string>(){ 
+                Key = messageId.ToString(),
+                Value = JsonConvert.SerializeObject(request),
+                Headers = new Headers(){
+                    new Header("method",Encoding.UTF8.GetBytes("createDialog")),
+                    new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                }
+            }))
+            {
+                var dialog = await _kafkaService.Consume<Dialog>("dialogResponsesTopic", messageId, "createDialog");
+                _logger.LogInformation("Dialog created, Dialog: {Dialog}", JsonConvert.SerializeObject(request));
+                return dialog;
+            }
+            _logger.LogError("Error sending dialog data, Dialog: {Dialog}", JsonConvert.SerializeObject(request));
+            throw new CreateDialogException("Error sending dialog, Dialog: "+JsonConvert.SerializeObject(request));
+        }
+        catch (Exception e)
+        {
+            if (e is not MyKafkaException)
+            {
+                _logger.LogError(e,"Error creating dialog, Dialog: {Dialog}", JsonConvert.SerializeObject(request));
+                throw new CreateDialogException("Error creating dialog, Dialog: "+JsonConvert.SerializeObject(request),e);
+            }
+            _logger.LogError(e,"Unhandled error");
+            throw;
+        }   
     }
 
-    public Task<bool> DeleteDialog(DeleteDialogRequest deleteDialogRequest)
+    public async Task<bool> DeleteDialog(DeleteDialogRequest deleteDialogRequest)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Guid messageId = Guid.NewGuid();
+            if(await _kafkaService.Produce("dialogResponsesTopic",
+            new Confluent.Kafka.Message<string, string>(){ 
+                Key = messageId.ToString(),
+                Value = JsonConvert.SerializeObject(deleteDialogRequest),
+                Headers = new Headers(){
+                    new Header("method",Encoding.UTF8.GetBytes("deleteDialog")),
+                    new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                }
+            }))
+            {
+                var dialog = await _kafkaService.Consume<MessageResponse>("dialogResponsesTopic", messageId, "deleteDialog");
+                _logger.LogInformation("Dialog deleted, Dialog: {Dialog}", JsonConvert.SerializeObject(deleteDialogRequest));
+                return !dialog.Message.Contains("Error");
+            }
+            _logger.LogError("Error sending dialog data, Dialog: {Dialog}", JsonConvert.SerializeObject(deleteDialogRequest));
+            throw new DeleteDialogException("Error sending dialog, Dialog: "+JsonConvert.SerializeObject(deleteDialogRequest));
+        }
+        catch (Exception e)
+        {
+            if (e is not MyKafkaException)
+            {
+                _logger.LogError(e,"Error deleting dialog, Dialog: {Dialog}", JsonConvert.SerializeObject(deleteDialogRequest));
+                throw new DeleteDialogException("Error deleting dialog, Dialog: "+JsonConvert.SerializeObject(deleteDialogRequest),e);
+            }
+            _logger.LogError(e,"Unhandled error");
+            throw;
+        }   
     }
 
-    public Task<List<Message>?> GetDialogMessages(GetDialogMessagesRequest dialogId)
+    public async Task<List<Message>?> GetDialogMessages(GetDialogMessagesRequest dialogId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Guid messageId = Guid.NewGuid();
+            if(await _kafkaService.Produce("dialogResponsesTopic",
+            new Confluent.Kafka.Message<string, string>(){ 
+                Key = messageId.ToString(),
+                Value = JsonConvert.SerializeObject(dialogId),
+                Headers = new Headers(){
+                    new Header("method",Encoding.UTF8.GetBytes("getDialogMessages")),
+                    new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                }
+            }))
+            {
+                var dialog = await _kafkaService.Consume<List<Message>>("dialogResponsesTopic", messageId, "getDialogMessages");
+                _logger.LogInformation("Dialog messages received, Dialog: {Dialog}", JsonConvert.SerializeObject(dialogId));
+                return dialog;
+            }
+            _logger.LogError("Error sending dialog data, Dialog: {Dialog}", JsonConvert.SerializeObject(dialogId));
+            throw new GetDialogMessagesException("Error sending dialog, Dialog: "+JsonConvert.SerializeObject(dialogId));
+        }
+        catch (Exception e)
+        {
+            if (e is not MyKafkaException)
+            {
+                _logger.LogError(e,"Error getting dialog messages, Dialog: {Dialog}", JsonConvert.SerializeObject(dialogId));
+                throw new GetDialogMessagesException("Error getting dialog messages, Dialog: "+JsonConvert.SerializeObject(dialogId),e);
+            }
+            _logger.LogError(e,"Unhandled error");
+            throw;
+        }
     }
 
-    public Task<List<Dialog>?> GetDialogsByOwnerId(GetDialogsByIdRequest getDialogsByIdRequest)
+    public async Task<List<Dialog>?> GetDialogsByOwnerId(GetDialogsByIdRequest getDialogsByIdRequest)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Guid messageId = Guid.NewGuid();
+            if(await _kafkaService.Produce("dialogResponsesTopic",
+            new Confluent.Kafka.Message<string, string>(){ 
+                Key = messageId.ToString(),
+                Value = JsonConvert.SerializeObject(getDialogsByIdRequest),
+                Headers = new Headers(){
+                    new Header("method",Encoding.UTF8.GetBytes("getDialogsByOwnerId")),
+                    new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                }
+            }))
+            {
+                var dialog = await _kafkaService.Consume<List<Dialog>>("dialogResponsesTopic", messageId, "getDialogsByOwnerId");
+                _logger.LogInformation("Dialogs received, Dialog: {Dialog}", JsonConvert.SerializeObject(getDialogsByIdRequest));
+                return dialog;
+            }
+            _logger.LogError("Error sending dialog data, Dialog: {Dialog}", JsonConvert.SerializeObject(getDialogsByIdRequest));
+            throw new GetDialogsByOwnerIdException("Error sending dialog, Dialog: "+JsonConvert.SerializeObject(getDialogsByIdRequest));
+        }
+        catch (Exception e)
+        {
+            if (e is not MyKafkaException)
+            {
+                _logger.LogError(e,"Error getting dialogs, Dialog: {Dialog}", JsonConvert.SerializeObject(getDialogsByIdRequest));
+                throw new GetDialogsByOwnerIdException("Error getting dialogs, Dialog: "+JsonConvert.SerializeObject(getDialogsByIdRequest),e);
+            }
+            _logger.LogError(e,"Unhandled error");
+            throw;
+        }
     }
 }
