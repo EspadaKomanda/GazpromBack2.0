@@ -23,9 +23,10 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                Guid messageId = Guid.NewGuid();
                 if(await _kafkaService.Produce("imageRequestsTopic",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(templateDto),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("addTemplate")),
@@ -33,7 +34,7 @@ namespace ImageAgregationService.Services.TemplateService
                     }
                 }))
                 {
-                    var addingResult = await _kafkaService.Consume<MessageResponse>("imageResponsesTopic", Guid.NewGuid(), "addTemplate");
+                    var addingResult = await _kafkaService.Consume<MessageResponse>("imageResponsesTopic", messageId, "addTemplate");
                     if(addingResult.Message == "Successfully added template")
                     {
                         _logger.LogInformation("Template added successfully, Template: {Template}", JsonConvert.SerializeObject(templateDto));
@@ -62,9 +63,10 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                Guid messageId = Guid.NewGuid();
                 if(await _kafkaService.Produce("imageRequestsTopic",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(deleteTemplateRequest),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("deleteTemplate")),
@@ -72,7 +74,7 @@ namespace ImageAgregationService.Services.TemplateService
                     }
                 }))
                 {
-                    var deletingResult = await _kafkaService.Consume<MessageResponse>("imageResponsesTopic", Guid.NewGuid(), "deleteTemplate");
+                    var deletingResult = await _kafkaService.Consume<MessageResponse>("imageResponsesTopic", messageId, "deleteTemplate");
                     if(deletingResult.Message == "Successfully deleted template")
                     {
                         _logger.LogInformation("Template deleted successfully, Template: {Template}", JsonConvert.SerializeObject(deleteTemplateRequest));
@@ -100,9 +102,10 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                Guid messageId = Guid.NewGuid();
                 if(await _kafkaService.Produce("imageRequestsTopic",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(getTemplateRequest),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("getTemplates")),
@@ -110,7 +113,7 @@ namespace ImageAgregationService.Services.TemplateService
                     }
                 }))
                 {
-                    var templateDto = await _kafkaService.Consume<List<TemplateDto>>("imageResponsesTopic", Guid.NewGuid(), "getTemplates");
+                    var templateDto = await _kafkaService.Consume<List<TemplateDto>>("imageResponsesTopic", messageId, "getTemplates");
                     _logger.LogInformation("Templates fetched successfully, Templates: {Templates}", JsonConvert.SerializeObject(getTemplateRequest));
                     return templateDto;
                 }
@@ -133,9 +136,10 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                Guid messageId = Guid.NewGuid();
                 if(await _kafkaService.Produce("imageRequestsTopic",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(modifyTemplateRequest),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("updateTemplate")),
@@ -143,7 +147,7 @@ namespace ImageAgregationService.Services.TemplateService
                     }
                 }))
                 {
-                    var templateDto = await _kafkaService.Consume<TemplateDto>("imageResponsesTopic", Guid.NewGuid(), "updateTemplate");
+                    var templateDto = await _kafkaService.Consume<TemplateDto>("imageResponsesTopic", messageId, "updateTemplate");
                     _logger.LogInformation("Template updated successfully, Template: {Template}", JsonConvert.SerializeObject(modifyTemplateRequest));
                     return templateDto;
                 }

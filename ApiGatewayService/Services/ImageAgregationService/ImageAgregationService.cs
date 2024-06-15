@@ -22,9 +22,10 @@ namespace ApiGatewayService.Services.ImageAgregationService
         {
             try
             {
+                Guid currentId = Guid.NewGuid();
                 if(await _kafkaService.Produce("imageRequestsTopic",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key =currentId.ToString(),
                     Value = JsonConvert.SerializeObject(generateImageKafkaRequest),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("generateImage")),
@@ -32,7 +33,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
                     }
                 }))
                 {
-                    var imageDto = await _kafkaService.Consume<ImageDto>("imageResponsesTopic", Guid.NewGuid(), "generateImage");
+                    var imageDto = await _kafkaService.Consume<ImageDto>("imageResponsesTopic", currentId, "generateImage");
                     _logger.LogInformation("Image generated successfully, Text: {Text}, Template: {Template}", generateImageKafkaRequest.Text , generateImageKafkaRequest.TemplateName);
                     return imageDto;
                 }

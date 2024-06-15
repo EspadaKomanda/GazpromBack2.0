@@ -25,9 +25,10 @@ public class UserService : IUserService
     {
         try
         {
+            Guid messageId = Guid.NewGuid();
             if(await _kafkaRequestResponseService.Produce("accountRequestsTopic",
             new Confluent.Kafka.Message<string, string>(){ 
-                Key = Guid.NewGuid().ToString(),
+                Key = messageId.ToString(),
                 Value = username,
                 Headers = new Headers(){
                     new Header("method",Encoding.UTF8.GetBytes("getUserByUserName")),
@@ -35,7 +36,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var user = await _kafkaRequestResponseService.Consume<User>("accountResponsesTopic", Guid.NewGuid(), "generateImage");
+                var user = await _kafkaRequestResponseService.Consume<User>("accountResponsesTopic", messageId, "generateImage");
                 _logger.LogInformation("User aquired successefully");
                 return user;
             }
@@ -53,9 +54,10 @@ public class UserService : IUserService
     {
         try
         {
+            Guid messageId = Guid.NewGuid();
             if(await _kafkaRequestResponseService.Produce("accountRequestsTopic",
             new Confluent.Kafka.Message<string, string>(){ 
-                Key = Guid.NewGuid().ToString(),
+                Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
                 Headers = new Headers(){
                     new Header("method",Encoding.UTF8.GetBytes("login")),
@@ -63,7 +65,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var result = await _kafkaRequestResponseService.Consume<MessageResponse>("accountResponsesTopic", Guid.NewGuid(), "generateImage");
+                var result = await _kafkaRequestResponseService.Consume<MessageResponse>("accountResponsesTopic", messageId, "generateImage");
                 _logger.LogInformation(result.Message);
                 return !result.Message.Contains("Error");
             }

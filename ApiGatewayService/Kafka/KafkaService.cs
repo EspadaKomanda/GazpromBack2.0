@@ -15,17 +15,15 @@ namespace KafkaTestLib.Kafka;
 
 public class KafkaService 
 {
-    private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, KafkaTopicManager kafkaTopicManager)
     {
-        _consumer = consumer;
         _producer = producer;
         _logger = logger;
-        
+        _kafkaTopicManager = kafkaTopicManager;
     }
 
    private bool IsTopicAvailable(string topicName)
@@ -43,7 +41,7 @@ public class KafkaService
         }
         catch (Exception e)
         {
-            if (e is not MyKafkaException)
+            if (e is MyKafkaException)
             {
                 _logger.LogError(e,"Error checking topic");
                 throw new ConsumerException("Error checking topic",e);
@@ -102,7 +100,7 @@ public class KafkaService
                     }
                     catch (Exception e)
                     {
-                        if (!(e is MyKafkaException))
+                        if (e is MyKafkaException)
                         {
                             _logger.LogError(e,"Consumer error");
                             throw new ConsumerException("Consumer error ",e);
@@ -117,7 +115,7 @@ public class KafkaService
         }
         catch(Exception ex)
         {
-            if (!(ex is MyKafkaException))
+            if (ex is MyKafkaException)
             {
                 _logger.LogError(ex,"Consumer error");
                 throw new ConsumerException("Consumer error ",ex);
@@ -168,7 +166,7 @@ public class KafkaService
         }
         catch (Exception e)
         {
-            if (e is not MyKafkaException)
+            if (e is MyKafkaException)
             {
                 _logger.LogError(e, "Error producing message");
                 throw new ProducerException("Error producing message",e);

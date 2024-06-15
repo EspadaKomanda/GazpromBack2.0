@@ -23,10 +23,10 @@ public class KafkaService
         _logger = logger;
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
-        bool isTopicAvailable = IsTopicAvailable("imageRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable("authRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("imageRequestsTopic");
+            _consumer.Subscribe("authRequestsTopic");
         }
         else
         {
