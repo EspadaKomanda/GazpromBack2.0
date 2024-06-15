@@ -41,7 +41,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     string prompt = await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
                     ImageResponse finalImage = await SendImageRequest(image, generateImageRequest);
-                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName))
+                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, Guid.NewGuid().ToString()))
                     {  
                         _logger.LogError("Error uploading image");
                         throw new UploadImageException("Error uploading image");
