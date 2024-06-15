@@ -16,7 +16,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <summary>q
     /// Создание диалога
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Диалог создан</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("createDialog")]
@@ -46,7 +46,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <summary>
     /// Получение сообщений в диалоге
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Сообщения получены</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("getDialogs")]
@@ -76,7 +76,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <summary>
     /// Получение списка диалогов пользователя
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Список диалогов получен</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("getDialogsByOwnerId")]
@@ -106,7 +106,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <summary>
     /// Удаление диалога
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Диалог удален</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("deleteDialog")]

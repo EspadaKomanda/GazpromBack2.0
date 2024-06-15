@@ -2,6 +2,7 @@ using ApiGatewayService.Exceptions.MessageExceptions;
 using DialogService.Database.Models;
 using DialogService.Models.Messages.Requests;
 using DialogService.Services.MessagesService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthService.Controllers;
@@ -15,10 +16,11 @@ public class MessageController(IMessagesService messageService) : ControllerBase
     /// <summary>
     /// Отправка сообщения
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Сообщение отправлено</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("sendMessage")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<Message>> SendMessage([FromBody] SendMessageRequest model)
     {
         if (!ModelState.IsValid)
@@ -44,10 +46,11 @@ public class MessageController(IMessagesService messageService) : ControllerBase
     /// <summary>
     /// Получение сообщения
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Сообщение получено</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("getMessage")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<Message>> GetMessage([FromBody] GetMessageRequest model)
     {
         if (!ModelState.IsValid)
@@ -73,10 +76,11 @@ public class MessageController(IMessagesService messageService) : ControllerBase
     /// <summary>
     /// Удаление сообщения
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Сообщение удалено</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("deleteMessage")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteMessage([FromBody] DeleteMessageRequest model)
     {
         if (!ModelState.IsValid)

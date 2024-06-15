@@ -21,6 +21,7 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
     [HttpPost]
     [Route("generateImage")]
     [Authorize(Roles = "User", Policy = "Access")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<ImageDto>> GenerateImage([FromBody] GenerateImageKafkaRequest model)
     {
         if (!ModelState.IsValid)
@@ -46,10 +47,11 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
     /// <summary>
     /// Получение списка изображений
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Изображения получены</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("getImages")]
+    [Authorize(Roles = "User", Policy = "Access")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<List<ImageDto>>> GetImages([FromBody] GetImagesKafkaRequest model)
     {

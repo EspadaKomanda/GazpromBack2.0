@@ -1,6 +1,7 @@
 using ImageAgregationService.Exceptions.MarkExceptions;
 using ImageAgregationService.Models.RequestModels.Mark;
 using ImageAgregationService.Services.MarkService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthService.Controllers;
@@ -14,10 +15,11 @@ public class MarkController(IMarkService markService) : ControllerBase
     /// <summary>
     /// Обновление оценки
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Оценка обновлена</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("updateMark")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateMark([FromBody] UpdateMarkKafkaRequest model)
     {
         if (!ModelState.IsValid)

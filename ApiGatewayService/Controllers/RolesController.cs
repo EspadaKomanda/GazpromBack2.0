@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserService.Exceptions.RoleExceptions;
 using UserService.Models.Roles.Requests;
@@ -14,10 +15,11 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <summary>
     /// Возвращает список ролей
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Роли получены</response>
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getRoles")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<List<Role>>> GetRoles()
     {
         if (!ModelState.IsValid)
@@ -43,10 +45,11 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <summary>
     /// Добавляет роль
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Роль добавлена</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("addRole")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> CreateRole([FromBody] RoleCreateRequest model)
     {
         if (!ModelState.IsValid)
@@ -72,10 +75,11 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <summary>
     /// Обновляет роль
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Роль обновлена</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("updateRole")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateRole([FromBody] RoleUpdateRequest model)
     {
         if (!ModelState.IsValid)
@@ -101,10 +105,11 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <summary>
     /// Удаляет роль
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Роль удалена</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("deleteRole")]
+    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteRole([FromBody] RoleDeleteRequest model)
     {
         if (!ModelState.IsValid)
