@@ -42,6 +42,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
                     _logger.LogInformation(image.ImageByteArray.ToByteArray().Length.ToString());
                     ImageResponse finalImage = await SendImageRequest(image, generateImageRequest);
+                    _logger.LogInformation("Error {Error}", finalImage.Error);
                     string imageName = Guid.NewGuid().ToString();
                     _logger.LogInformation(finalImage.ImageBytes.ToByteArray().Length.ToString());
                     if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, imageName))
