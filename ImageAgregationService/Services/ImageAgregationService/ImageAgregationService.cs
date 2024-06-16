@@ -119,7 +119,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 throw new VerifyImageException("Failed to process image");
             }
             return verifyImageResponse;
-        }
+        } 
         
         private async Task<string> GenerateValidPrompt(string templateName, string text)
         {
