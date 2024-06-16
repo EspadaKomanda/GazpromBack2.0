@@ -36,5 +36,4 @@ def serve():
    server.add_insecure_port("[::]:5051")
    server.start()
    server.wait_for_termination()
-generateImage("toy_face of a hacker with a hoodie")
 serve()

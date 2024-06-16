@@ -2,7 +2,6 @@
 .idea
 .vscode
 .vs
-*.yml
 # editors
 *.kate-swp
 local.session.sql

@@ -1,0 +1,106 @@
+#Docker-Compose File for MainProject
+#Для поднятия ImageGenerationService докер не нужен, необходимо поставить необходимые библиотеки на вм с гпу и запустить питон
+#Для подключения логирования, необходимо в appsettings изменить настройки логирования в appsettings.json OpenSearchConfiguration
+services:
+  image-agregation-service:
+    build: ImageAgregationService
+    ports:
+      - 5072:5072
+    environment:
+      - REDIS_CONNECTION_STRING=
+      - REDIS_INSTANCE_NAME=image-agregation
+      - KAFKA_BROKERS=
+      - KAFKA_GROUP_ID=image-agregation
+      - KAFKA_CLIENT_ID=image-agregation
+      - S3_URL=
+      - DB_HOSTNAME=
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=QWERTYUIO2313
+      - DB_NAME=imageagregationdb
+      - IMAGERESP_TOPIC=imageResponseTopic
+      - IMAGEREQ_TOPIC=imageRequestTopic
+      - IMAGEPROCESSOR_URL=
+      - IMAGEGENERATOR_URL=
+    restart: unless-stopped
+  api-gateway-service:
+    build: ApiGatewayService
+    ports:
+      - 5220:5220
+    environment:
+      - KAFKA_BROKERS=
+      - KAFKA_CLIENT_ID=api-gateway
+      - KAFKA_GROUP_ID=api-gateway
+      - AUTH_JWT_SECRET=ZpziDEMrdWrB33usktoV1vTLPLDd59NNtKeU6/r90wYlnF3JtTECcxN33dLamFaYQG8=
+      - AUTHRESP_TOPIC=authResponsesTopic
+      - AUTHREQ_TOPIC=authRequestsTopic
+      - IMAGERESP_TOPIC=imageResponseTopic
+      - IMAGEREQ_TOPIC=imageRequestTopic
+      - DIALOGRESP_TOPIC=dialogsResponsesTopic
+      - DIALOGREQ_TOPIC=dialogsRequestsTopic
+      - ACCOUNTRESP_TOPIC=accountResponsesTopic
+      - ACCOUNTREQ_TOPIC=accountRequestsTopic
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
+  auth-service:
+    build: AuthService
+    environment:
+      - DB_HOSTNAME=
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=QWERTYUIO2313
+      - DB_NAME=authdb
+      - KAFKA_BROKERS=
+      - KAFKA_GROUP_ID=auth-service
+      - KAFKA_CLIENT_ID=auth-service
+      - ACCOUNTRESP_TOPIC=accountResponsesTopic
+      - ACCOUNTREQ_TOPIC=accountRequestsTopic
+      - AUTHRESP_TOPIC=authResponsesTopic
+      - AUTHREQ_TOPIC=authRequestsTopic
+      - AUTH_JWT_SECRET=ZpziDEMrdWrB33usktoV1vTLPLDd59NNtKeU6/r90wYlnF3JtTECcxN33dLamFaYQG8=
+      
+    ports:
+      - 5095:5095
+    restart: unless-stopped
+  dialog-service:
+    build: DialogService
+    environment:
+      - DB_HOSTNAME=
+      - DB_PORT=
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=QWERTYUIO2313
+      - DB_NAME=dialogdb
+      - KAFKA_BROKERS=
+      - KAFKA_GROUP_ID=dialog-service
+      - KAFKA_CLIENT_ID=dialog-service
+      - DIALOGRESP_TOPIC=dialogsResponsesTopic
+      - DIALOGREQ_TOPIC=dialogsRequestsTopic
+    ports:
+      - 5099:5099
+    restart: unless-stopped
+  image-proccessor:
+    build: ImageProccessingService
+    ports:
+      - 5050:5050
+  user-service:
+    build: UserService
+    environment:
+      - DB_HOSTNAME=
+      - DB_PORT=
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=QWERTYUIO2313
+      - DB_NAME=userdb
+      - KAFKA_BROKERS=
+      - KAFKA_GROUP_ID=user-service
+      - KAFKA_CLIENT_ID=user-service
+      - ACCOUNTRESP_TOPIC=accountResponsesTopic
+      - ACCOUNTREQ_TOPIC=accountRequestsTopic
+      - SMTP_FROM=
+      - SMTP_SERVER=
+      - SMTP_PORT=
+      - SMTP_USERNAME=
+      - SMTP_PASSWORD=
+    ports:
+      - 5090:5090
+    restart: unless-stopped
+  
