@@ -164,6 +164,7 @@ def check_colors(image, allowed_colors):
     return True
 def process(byte_image, allowed_colors_str, background="transparent", width=512, height=512, resolution_pos="center", text=None, font=None,
             should_check_colors=False):
+    print("A"*1000)
     resolution = (width, height)
     allowed_colors = []
     for color in allowed_colors_str:
@@ -201,7 +202,8 @@ def process(byte_image, allowed_colors_str, background="transparent", width=512,
     img_byte_array = io.BytesIO()
     image.save(img_byte_array, format='PNG')
     img_byte_array = img_byte_array.getvalue()
-    print(img_byte_array)
+    
+    print("B"*1000+"\n"+img_byte_array)
     return img_byte_array
 class GExchange(pb2_grpc.ImageProcessorServicer):
    def VerifyImage(self, request, context):
