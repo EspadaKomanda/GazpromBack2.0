@@ -10,7 +10,7 @@ public class Message
     [Required]
     public string Text { get; set; } = null!;
     public DateTime Timestamp { get; set; }
-    public long? ImageId { get; set; }
+    public Guid? ImageId { get; set; }
     [Required]
     public Dialog Dialog { get; set; } = null!;
     public long DialogId { get; set; }

@@ -1,3 +1,5 @@
+using ImageAgregationService.Models.RequestModels;
+
 \using ApiGatewayService.Services.ImageAgregationService;
 using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Models.DTO;
