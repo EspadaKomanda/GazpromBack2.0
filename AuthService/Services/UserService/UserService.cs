@@ -36,7 +36,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var user = await _kafkaRequestResponseService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountRequestsTopic", messageId, "generateImage");
+                var user = await _kafkaRequestResponseService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountRequestsTopic", messageId, "getUserByUsername");
                 _logger.LogInformation("User aquired successefully");
                 return user;
             }
@@ -65,7 +65,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var result = await _kafkaRequestResponseService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC"), messageId, "generateImage");
+                var result = await _kafkaRequestResponseService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC"), messageId, "login");
                 _logger.LogInformation(result.Message);
                 return !result.Message.Contains("Error");
             }
