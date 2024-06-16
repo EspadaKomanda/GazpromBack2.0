@@ -84,8 +84,6 @@ public class KafkaService
                     
                     // Convert the bytes to a string
                     var methodString = Encoding.UTF8.GetString(headerBytes.GetValueBytes());
-                    
-                    Thread.Sleep(5000);
                     switch (methodString)
                     {
                         case "generateImage":
@@ -94,7 +92,7 @@ public class KafkaService
                                 var message = JsonConvert.DeserializeObject<GenerateImageKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("message is null");
                                 
                                 ImageDto image = await _imageAgregationService.GetImage(result.Message.Key,message);
-                                Thread.Sleep(10000);
+                                
                                 if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                 Value = JsonConvert.SerializeObject(image), 
                                 Headers = [ 

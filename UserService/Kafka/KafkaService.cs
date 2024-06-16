@@ -338,8 +338,7 @@ public class KafkaService
 
                             try
                             {
-                                
-                                Thread.Sleep(1000);
+        
                                 var updateRoleRequest = JsonConvert.DeserializeObject<RoleUpdateRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
@@ -375,7 +374,6 @@ public class KafkaService
 
                             try
                             {
-                                Thread.Sleep(5000);
                                 var user = await _userService.GetUserByUsername(result.Message.Value);
                                 if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
