@@ -36,7 +36,7 @@ builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
         EnableAutoCommit = true,
         AutoCommitIntervalMs = 10,
         EnableAutoOffsetStore = true,
-        AutoOffsetReset = AutoOffsetReset.Latest
+        AutoOffsetReset = AutoOffsetReset.Earliest
     }
 ).Build());
 builder.Services.AddSingleton(new AdminClientBuilder(
