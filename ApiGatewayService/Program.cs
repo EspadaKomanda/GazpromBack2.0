@@ -80,7 +80,16 @@ builder.Services.AddAuthorizationBuilder()
     {
         policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
     });
-    
+builder.Services.AddCors(options => 
+{
+    options.AddDefaultPolicy(builder => 
+    {
+        builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
+});
 builder.Services.AddAuthentication("default")
 .AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
 {
@@ -98,7 +107,7 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 app.UseHttpsRedirection();
 
-
+app.UseCors();
 app.Run();
 void configureLogging(){
     var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
