@@ -18,4 +18,6 @@ public class Message
     public Sender Sender { get; set; }
     [Required]
     public MessageStyle Style { get; set; } = MessageStyle.Normal;
+
+   
 }
