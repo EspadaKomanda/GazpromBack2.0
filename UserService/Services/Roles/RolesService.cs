@@ -5,7 +5,7 @@ using UserService.Repositories;
 
 namespace UserService.Services.Roles;
 
-public class RolesService(RoleRepository roleRepo, ILogger<RolesService> logger) : IRolesService
+public class RolesService(IRoleRepository roleRepo, ILogger<RolesService> logger) : IRolesService
 {
     private readonly IRoleRepository _roleRepo = roleRepo;
     private readonly ILogger<RolesService> _logger = logger;
