@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package imageProcessor;
+
+message ImageRequest {
+    bytes byte_image = 1;
+    repeated string allowed_colors_str = 2;
+    string background = 3;
+    int32 width = 4;
+    int32 height = 5;
+    string resolution_pos = 6;
+    string text = 7;
+    string font = 8;
+    bool should_check_colors = 9;
+}
+
+message ImageResponse {
+    bytes image_bytes = 1;
+    string error = 2;
+}
+
+service ImageProcessor {
+  rpc VerifyImage(ImageRequest) returns (ImageResponse);
+}

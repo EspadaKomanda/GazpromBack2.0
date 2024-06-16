@@ -1,4 +1,4 @@
-namespace BackGazprom.Models.Account.Responses;
+namespace AuthService.Models.Account.Responses;
 
 public class AccountTokensResponse
 {

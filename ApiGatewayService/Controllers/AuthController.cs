@@ -1,110 +1,77 @@
 using System.Security.Claims;
-using ApiGatewayService.Services.Accont;
-using ApiGatewayService.Services.Jwt;
-using BackGazprom.Models.Account.Requests;
-using BackGazprom.Models.Account.Responses;
+using ApiGatewayService.Exceptions.User;
+using AuthService.Models.Account.Requests;
+using AuthService.Models.Account.Responses;
+using AuthService.Services.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserService.Services.Account;
 
 namespace AuthService.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController(IJwtService jwtService, IAccountService accountService) : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IJwtService _jwtService = jwtService;
-    private readonly IAccountService _accountService = accountService;
-
-    
-    
-    /// <summary>
-    /// Запрос на регистрацию нового пользователя.
-    /// </summary>
-    /// <response code="200">Получены токены</response>
-    /// <response code="429">Превышено количество попыток регистрации</response>
-    [Route("register")]
-    [HttpPost]
-    public async Task<IActionResult> Register([FromBody] AccountRegisterRequest model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        return await _accountService.AccountRegister(model);
-    }
+    private readonly IAuthService _authService = authService;
 
     /// <summary>
-    /// Завершение регистрации нового пользователя.
-    /// </summary>
-    /// <response code="200">Получены токены</response>
-    /// <response code="400">Некорректные данные</response>
-    /// <response code="401">Неверный код регистрации</response>
-    [Route("finishRegistration")]
-    [HttpPost]
-    public async Task<ActionResult<AccountTokensResponse>> FinishRegistration([FromBody] AccountFinishRegistrationRequest model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        return await _accountService.AccountFinishRegistration(model);
-    }
-
-    /// <summary>
-    /// Аутентификация пользователя.
+    /// Вход в аккаунт при помощи пароля.
     /// </summary>
     /// <response code="200">Получены токены</response>
     /// <response code="401">Неверные данные входа</response>
-    [Route("login")]
     [HttpPost]
+    [Route("login")]
     public async Task<ActionResult<AccountTokensResponse>> Login([FromBody] AccountLoginRequest model)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        return await _accountService.AccountLogin(model);
-    }
 
-    /// <summary>
-    /// Изменение пароля пользователя.
-    /// </summary>
-    /// <response code="200">Получены токены</response>
-    /// <response code="400">Некорректные данные</response>
-    /// <response code="401">Неверные данные входа или неверный старый пароль</response>
-    [Route("changePassword")]
-    [HttpPost]
-    [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<AccountTokensResponse>> ChangePassword([FromBody] AccountChangePasswordRequest model)
-    {
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(ModelState);
+            var result = await _authService.AccountLogin(model);
+            return Ok(result);
         }
-
-        var username = User.Claims.First(c => c.Type == ClaimTypes.Name).Value;
-
-        return await _accountService.AccountChangePassword(username, model);
+        catch (Exception e)
+        {
+            if (e is LoginException)
+            {
+                return Unauthorized();
+            }
+            return StatusCode(500);
+        }
     }
 
     /// <summary>
-    /// Обновление токенов.
+    /// Обновление токена.
     /// </summary>
     /// <response code="200">Получены токены</response>
-    /// <response code="401">Неверные данные входа</response>
-    [Route("refreshToken")]
-    [HttpPost]
+    /// <response code="401">Неверный refresh токен</response>
+    [HttpGet]
+    [Route("login")]
     [Authorize(Roles = "User", Policy = "Refresh")]
-    public async Task<ActionResult<AccountTokensResponse>> RefreshToken(AccountRefreshTokenRequest model)
+    public async Task<ActionResult<AccountTokensResponse>> RefreshToken([FromQuery] AccountRefreshTokenRequest model)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var username = User.Claims.First(c => c.Type == ClaimTypes.Name).Value;
-
-        return await _accountService.AccountRefreshToken(username, model);
+        try
+        {
+            var result = await _authService.AccountRefreshToken(model);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is LoginException)
+            {
+                return Unauthorized();
+            }
+            return StatusCode(500);
+        }
     }
 
-}]
+}

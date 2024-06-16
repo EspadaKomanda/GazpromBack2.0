@@ -8,6 +8,7 @@ using UserService.Models.Account.Requests;
 using UserService.Models.Roles.Requests;
 using UserService.Services.Account;
 using UserService.Services.Roles;
+using UserService.Services.UserInfoService;
 namespace KafkaTestLib.Kafka;
 
 public class KafkaService
@@ -18,6 +19,7 @@ public class KafkaService
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IAccountService _accountService;
     private readonly IRolesService _rolesService;
+    private readonly IUserInfoService _userService;
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IAccountService accountService, IRolesService rolesService)
     {
@@ -363,6 +365,42 @@ public class KafkaService
                                 _consumer.Commit(result);
                                 throw new ConsumerRecievedMessageInvalidException("Unhandled error",e);
                             }
+                        case "getUserByUserName":
+
+                            try
+                            {
+                                var user = await _userService.GetUserByUsername(result.Message.Value);
+                                if(await Produce("accountResponsesTopic",new Message<string, string>(){ 
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(user),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getUserByUserName")),
+                                        new Header("sender", Encoding.UTF8.GetBytes("AccountService"))
+                                    ]}))
+                                    {
+                                        _logger.LogInformation("Message delivery status: Persisted {Result}", result.Message.Value );
+                                        _consumer.Commit(result);
+                                    }
+                                break;
+                            }   
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting user",}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getUserByUserName")),
+                                        new Header("sender", Encoding.UTF8.GetBytes("AccountService")),
+                                        new Header("error", Encoding.UTF8.GetBytes("Error getting user")),    
+                                    ]});
+                                _consumer.Commit(result);
+                                throw new ConsumerRecievedMessageInvalidException("Unhandled error",e);
+                            }
+
                         default:
                             _consumer.Commit(result);
                             

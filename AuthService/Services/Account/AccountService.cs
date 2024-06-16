@@ -3,14 +3,18 @@ using AuthService.Models.Account.Requests;
 using AuthService.Models.Account.Responses;
 using AuthService.Services.UserService;
 using AuthService.Exceptions.User;
+using AuthService.Database.Models;
+using Confluent.Kafka;
+using BackGazprom.Kafka;
 
 namespace AuthService.Services.Account;
 
-public class AccountService(IJwtService jwtService, IUserService userService, ILogger<AccountService> logger) : IAccountService
+public class AccountService(IJwtService jwtService, IUserService userService, ILogger<AccountService> logger, KafkaRequestResponseService kafkaRequestResponseService) : IAccountService
 {
     private readonly IJwtService _jwtService = jwtService;
     private readonly IUserService _userService = userService;
     private readonly ILogger<AccountService> _logger = logger;
+
 
     public async Task<AccountTokensResponse> AccountLogin(AccountLoginRequest request)
     {
@@ -54,4 +58,5 @@ public class AccountService(IJwtService jwtService, IUserService userService, IL
         _logger.LogInformation("Refreshed token for user {Username}", validationInfo.Item2);
         return response;
     }
+   
 }

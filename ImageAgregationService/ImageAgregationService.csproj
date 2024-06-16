@@ -32,7 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="protos\imageGenerator.proto" />
-    <Protobuf Include="protos\imageVerifier.proto" />
-    <Protobuf Include="protos\imageTextAdder.proto" />
+    <Protobuf Include="protos\imageProccessor.proto" />
   </ItemGroup>
 </Project>

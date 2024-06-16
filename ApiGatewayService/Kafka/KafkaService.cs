@@ -15,17 +15,15 @@ namespace KafkaTestLib.Kafka;
 
 public class KafkaService 
 {
-    private readonly IConsumer<string, string> _consumer; 
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, KafkaTopicManager kafkaTopicManager)
     {
-        _consumer = consumer;
         _producer = producer;
         _logger = logger;
-        
+        _kafkaTopicManager = kafkaTopicManager;
     }
 
    private bool IsTopicAvailable(string topicName)
@@ -43,7 +41,7 @@ public class KafkaService
         }
         catch (Exception e)
         {
-            if (e is not MyKafkaException)
+            if (e is MyKafkaException)
             {
                 _logger.LogError(e,"Error checking topic");
                 throw new ConsumerException("Error checking topic",e);
@@ -62,11 +60,21 @@ public class KafkaService
                 _logger.LogError("Unable to subscribe to topic");
                 throw new ConsumerTopicUnavailableException("Topic unavailable");
             }
-
-            _consumer.Subscribe(topicName);
+            var localConsumer = new ConsumerBuilder<string,string>(
+                new ConsumerConfig()
+                {
+                    BootstrapServers = "90.156.218.15:29092",
+                    GroupId = "authConsumer"+Guid.NewGuid().ToString(), 
+                    EnableAutoCommit = true,
+                    AutoCommitIntervalMs = 10,
+                    EnableAutoOffsetStore = true,
+                    AutoOffsetReset = AutoOffsetReset.Latest
+                }
+            ).Build();
+            localConsumer.Subscribe(topicName);
             while (true)
             {
-                ConsumeResult<string, string> result = _consumer.Consume(5000);
+                ConsumeResult<string, string> result = localConsumer.Consume(5000);
 
                 if (result != null)
                 {
@@ -83,7 +91,7 @@ public class KafkaService
                             if(Encoding.UTF8.GetString(result.Message.Headers.FirstOrDefault(x => x.Key.Equals("method")).GetValueBytes()) == methodName)
                             {
                                 var message = JsonConvert.DeserializeObject<T>(result.Message.Value);
-                                _consumer.Commit(result);
+                                localConsumer.Commit(result);
                                 return message;
                             }
                             _logger.LogError("Wrong message method");
@@ -92,12 +100,13 @@ public class KafkaService
                     }
                     catch (Exception e)
                     {
-                        if (!(e is MyKafkaException))
+                        if (e is MyKafkaException)
                         {
                             _logger.LogError(e,"Consumer error");
                             throw new ConsumerException("Consumer error ",e);
                         }
                         _logger.LogError(e,"Unhandled error");
+                        localConsumer.Commit(result);
                         throw;
                     }
                    
@@ -106,7 +115,7 @@ public class KafkaService
         }
         catch(Exception ex)
         {
-            if (!(ex is MyKafkaException))
+            if (ex is MyKafkaException)
             {
                 _logger.LogError(ex,"Consumer error");
                 throw new ConsumerException("Consumer error ",ex);
@@ -157,7 +166,7 @@ public class KafkaService
         }
         catch (Exception e)
         {
-            if (e is not MyKafkaException)
+            if (e is MyKafkaException)
             {
                 _logger.LogError(e, "Error producing message");
                 throw new ProducerException("Error producing message",e);

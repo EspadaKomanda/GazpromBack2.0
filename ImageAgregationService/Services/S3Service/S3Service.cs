@@ -7,6 +7,7 @@ using ImageAgregationService.Models;
 using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Singletones;
 using Imagegenerator;
+using ImageProcessor;
 
 namespace ImageAgregationService.Services
 {
@@ -156,28 +157,28 @@ namespace ImageAgregationService.Services
                 throw new GetImageException("Failed to get image from S3 bucket!", ex);
             }
         }
-        public async Task<bool> UploadImageToS3Bucket(GenerateImageResponse generateImageResponse)
+        public async Task<bool> UploadImageToS3Bucket(ImageResponse generateImageResponse, string template, string imageName)
         {
             try
             {
                 PutObjectResponse response = await _s3Client.PutObjectAsync(new PutObjectRequest
                 {
-                    BucketName = generateImageResponse.Template,
-                    Key = generateImageResponse.ImageName,
-                    InputStream = new MemoryStream(generateImageResponse.ImageByteArray.ToByteArray())
+                    BucketName = template,
+                    Key = imageName,
+                    InputStream = new MemoryStream(generateImageResponse.ImageBytes.ToByteArray())
                 });
                 if(response.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    _logger.LogInformation($"Image {generateImageResponse.ImageName} uploaded to S3 bucket {generateImageResponse.Template}!");
+                    _logger.LogInformation($"Image {generateImageResponse.ImageBytes} uploaded to S3 bucket {template}!");
                     return true;
                 }
                 if(response.HttpStatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
-                    _logger.LogError($"Failed to upload image {generateImageResponse.ImageName} to S3 bucket {generateImageResponse.Template}, storage unavailable!");
+                    _logger.LogError($"Failed to upload image {imageName} to S3 bucket {template}, storage unavailable!");
                     throw new StorageUnavailibleException("Failed to upload image to S3 bucket, storage unavailable!");
                 }
-                _logger.LogError($"Failed to upload image {generateImageResponse.ImageName} to S3 bucket {generateImageResponse.Template}, unhandled exception!" + response.ToString());
-                throw new UploadImageException($"Failed to upload image {generateImageResponse.ImageName} to S3 bucket {generateImageResponse.Template}, unhandled exception!" + response.ToString());
+                _logger.LogError($"Failed to upload image {imageName} to S3 bucket {template}, unhandled exception!" + response.ToString());
+                throw new UploadImageException($"Failed to upload image {imageName} to S3 bucket {template}, unhandled exception!" + response.ToString());
             }
             catch (Exception ex)
             {

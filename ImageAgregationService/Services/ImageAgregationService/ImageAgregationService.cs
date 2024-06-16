@@ -8,8 +8,7 @@ using ImageAgregationService.Repository;
 using ImageAgregationService.Repository.ImageRepository;
 using ImageAgregationService.Singletones.Communicators;
 using Imagegenerator;
-using Imagetextadder;
-using Imageverifier;
+using ImageProcessor;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
@@ -20,8 +19,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
     ILogger<ImageAgregationService> logger,
     IS3Service s3Service,
     ImageGenerationCommunicator imageGenerationCommunicator,
-    ImageVerifierCommunicator imageVerifierCommunicator,
-    ImageTextAdderCommunicator imageTextAdderCommunicator,
+    ImageProcessorCommunicator imageProcessorCommunicator,
     IDistributedCache cache) : IImageAgregationService
     {
         private readonly IImageRepository _imageRepository = imageRepository;
@@ -29,8 +27,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly ILogger<ImageAgregationService> _logger = logger;
         private readonly IS3Service _s3Service = s3Service;
         private readonly ImageGenerationCommunicator _imageGenerationCommunicator = imageGenerationCommunicator;
-        private readonly ImageVerifierCommunicator _imageVerifierCommunicator = imageVerifierCommunicator;
-        private readonly ImageTextAdderCommunicator _imageTextAdderCommunicator = imageTextAdderCommunicator;
+        private readonly ImageProcessorCommunicator _imageProcessorCommunicator = imageProcessorCommunicator;
         private readonly IDistributedCache _cache = cache;
 
         public async Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
@@ -43,9 +40,8 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 {
                     string prompt = await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
-                    AddTextToImageResponse imageWithText = await SendAddTextToImageRequest(await SendVerifyImageRequest(image), generateImageRequest.Text);
-                    image.ImageByteArray = imageWithText.ImageByteArray;
-                    if(!await _s3Service.UploadImageToS3Bucket(image))
+                    ImageResponse finalImage = await SendImageRequest(image, generateImageRequest);
+                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, Guid.NewGuid().ToString()))
                     {  
                         _logger.LogError("Error uploading image");
                         throw new UploadImageException("Error uploading image");
@@ -109,26 +105,17 @@ namespace ImageAgregationService.Services.ImageAgregationService
             _logger.LogInformation("Generated image: {Name} with prompt: {Prompt}", image.ImageName, prompt);
             return image;
         }
-        private async Task<VerifyImageResponse> SendVerifyImageRequest(GenerateImageResponse image)
+        private async Task<ImageResponse> SendImageRequest(GenerateImageResponse image, GenerateImageKafkaRequest generateImageRequest)
         {
-            VerifyImageResponse verifyImageResponse = await _imageVerifierCommunicator.VerifyImage(image);
+            ImageResponse verifyImageResponse = await _imageProcessorCommunicator.VerifyImage(image,generateImageRequest);
             if(verifyImageResponse.Error != "")
             {
-                _logger.LogError("Failed to verify image: {Error}", verifyImageResponse.Error);
-                throw new VerifyImageException("Failed to verify image");
+                _logger.LogError("Failed to process image: {Error}", verifyImageResponse.Error);
+                throw new VerifyImageException("Failed to process image");
             }
             return verifyImageResponse;
         }
-        private async Task<AddTextToImageResponse> SendAddTextToImageRequest(VerifyImageResponse verifiedImage, string text)
-        {
-            AddTextToImageResponse addTextToImageResponse = await _imageTextAdderCommunicator.AddText(verifiedImage, text);
-            if(addTextToImageResponse.Error != "")
-            {
-                _logger.LogError("Failed to add text to image: {Error}", addTextToImageResponse.Error);
-                throw new AddTextToImageException("Failed to add text to image");
-            }
-            return addTextToImageResponse;
-        }
+        
         private async Task<string> GenerateValidPrompt(string templateName, string text)
         {
             try

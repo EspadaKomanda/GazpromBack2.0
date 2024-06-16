@@ -27,9 +27,9 @@ public class UserInfoService(IUserRepository userRepo) : IUserInfoService
         throw new NotImplementedException();
     }
 
-    public Task<User?> GetUserByUsername(string username)
+    public async Task<User?> GetUserByUsername(string username)
     {
-        throw new NotImplementedException();
+        return await _userRepo.GetUserByUsername(username);
     }
 
     public Task<bool> UpdateUser(User user)
