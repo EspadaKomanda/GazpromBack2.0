@@ -85,4 +85,38 @@ public class AuthService : IAuthService
             throw;
         }
     }
+
+    public async Task<Tuple<bool, string>> ValidateRefreshToken(AccountRefreshTokenRequest request)
+    {
+        try
+        {
+            Guid messageId = Guid.NewGuid();
+            if(await _kafkaService.Produce("authRequestsTopic",
+            new Confluent.Kafka.Message<string, string>(){ 
+                Key = messageId.ToString(),
+                Value = JsonConvert.SerializeObject(request),
+                Headers = new Headers(){
+                    new Header("method",Encoding.UTF8.GetBytes("validateRefresh")),
+                    new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                }
+            }))
+            {
+                var loginResponse = await _kafkaService.Consume<Tuple<bool, string>>("authResponseTopic", messageId, "validateRefreshToken");
+                _logger.LogInformation("Validate refresh token successful, User: {User}", JsonConvert.SerializeObject(request));
+                return loginResponse;
+            }
+            _logger.LogError("Error sending validate refresh token, User: {User}", JsonConvert.SerializeObject(request));
+            throw new Exception("Error sending validate refresh token, User: "+JsonConvert.SerializeObject(request));
+        }
+        catch (Exception e)
+        {
+            if (e is not MyKafkaException)
+            {
+                _logger.LogError(e,"Error validating refresh token, User: {User}", JsonConvert.SerializeObject(request));
+                throw new Exception("Error validating refresh token, User: "+JsonConvert.SerializeObject(request),e);
+            }
+            _logger.LogError(e,"Unhandled error");
+            throw;
+        }
+    }
 }

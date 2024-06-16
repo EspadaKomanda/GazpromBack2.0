@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AuthService.Models.Account.Requests;
 using AuthService.Services.Account;
+using AuthService.Services.Jwt;
 using Confluent.Kafka;
 using DialogService.Models.Generic.Responses;
 using KafkaTestLib.KafkaException;
@@ -15,14 +16,16 @@ public class KafkaService
     private readonly ILogger<KafkaService> _logger;
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IAccountService _accountService;
+    private readonly IJwtService _jwtService;
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,AccountService accountService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,AccountService accountService, IJwtService jwtService)
     {
         _consumer = consumer;
         _producer = producer;
         _logger = logger;
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
+        _jwtService = jwtService;
         bool isTopicAvailable = IsTopicAvailable("authRequestsTopic");
         if(isTopicAvailable)
         {
@@ -78,6 +81,45 @@ public class KafkaService
                         
                     switch (methodString)
                     {
+                        case "validateRefresh":
+                            try
+                            {
+                                var refreshTokenRequest = JsonConvert.DeserializeObject<AccountRefreshTokenRequest>(result.Message.Value) ?? throw new NullReferenceException("Deserialization failed");
+                                var validateResult = await _jwtService.ValidateRefreshToken(refreshTokenRequest.RefreshToken);
+                                if(validateResult.Item1)
+                                {
+                                    if(await Produce("authResponseTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    Value = JsonConvert.SerializeObject(validateResult), 
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("validateRefresh")),
+                                        new Header("sender", Encoding.UTF8.GetBytes("AuthService"))
+                                    ]}))
+                                    {
+                                        _logger.LogInformation("Message delivery status: Persisted {Result}", result.Message.Value );
+                                        _consumer.Commit(result);
+                                    }
+                                }
+                                
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error validating refresh token",}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("validateRefresh")),
+                                        new Header("sender", Encoding.UTF8.GetBytes("AuthService")),
+                                         new Header("error", Encoding.UTF8.GetBytes("Error validating refresh token"))
+                                        
+                                ]});
+                                _logger.LogError(e,"Error validating refresh token");
+                                _consumer.Commit(result);
+                            }
+                            break;
                         case "login":
                             try
                             {
