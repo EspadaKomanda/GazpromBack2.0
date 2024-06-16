@@ -217,9 +217,9 @@ class GExchange(pb2_grpc.ImageProcessorServicer):
          print(request.request.font)
          print(request.request.should_check_colors)
          image = process(request.byte_image, request.allowed_colors_str, request.background, request.width, request.height, request.resolution_pos, request.text, request.font, request.should_check_colors)
-         return pb2.ImageResponse(image_byte_array=image,error="")
+         return pb2.ImageResponse(image_bytes=image,error="")
        except Exception as e:
-         return pb2.ImageResponse(image_byte_array=request.byte_image,error=str(e))
+         return pb2.ImageResponse(image_bytes=request.byte_image,error=str(e))
        
 def serve():
    server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
