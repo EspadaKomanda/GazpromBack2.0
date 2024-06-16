@@ -1,4 +1,5 @@
 using ApiGatewayService.Exceptions.User;
+using ApiGatewayService.Models.User;
 using AuthService.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using UserService.Services.UserInfoService;
@@ -18,7 +19,7 @@ public class UserController(IUserService userService) : ControllerBase
     /// <response code="404">Пользователь не найден</response>
     [HttpGet]
     [Route("getUserByUsername")]
-    public async Task<ActionResult<User>> GetUserByUsername([FromQuery] string username)
+    public async Task<ActionResult<UserModel>> GetUserByUsername([FromQuery] string username)
     {
         if (!ModelState.IsValid)
         {
@@ -28,6 +29,11 @@ public class UserController(IUserService userService) : ControllerBase
         try
         {
             var result = await _userService.GetUserByUsername(username);
+            var model = new UserModel
+            {
+                Id = result.Id,
+                Username = result.Username
+            };
             return Ok(result);
         }
         catch (Exception e)
