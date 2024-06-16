@@ -11,6 +11,7 @@ using KafkaTestLib.Kafka;
 using Confluent.Kafka;
 using UserService.Services;
 using MireaHackBack.Services;
+using UserService.Services.Roles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddScoped<KafkaService>();
 // Logs
