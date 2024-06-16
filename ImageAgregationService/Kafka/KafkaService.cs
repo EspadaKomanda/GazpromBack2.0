@@ -93,6 +93,7 @@ public class KafkaService
                                 var message = JsonConvert.DeserializeObject<GenerateImageKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("message is null");
                                 
                                 ImageDto image = await _imageAgregationService.GetImage(result.Message.Key,message);
+                                Thread.Sleep(10000);
                                 if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                 Value = JsonConvert.SerializeObject(image), 
                                 Headers = [ 
@@ -100,7 +101,7 @@ public class KafkaService
                                     new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")) 
                                 ]}))
                                 {
-                                    Thread.Sleep(1000);
+                                    
                                     _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
                                     _consumer.Commit(result);
                                 }
