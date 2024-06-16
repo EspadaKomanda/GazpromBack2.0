@@ -56,6 +56,21 @@ services:
     restart: unless-stopped
   user-service:
     build: UserService
+    environment:
+      - DB_HOSTNAME=83.166.239.45
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=QWERTYUIO2313
+      - DB_NAME=userdb
+      - KAFKA_BROKERS=90.156.218.15:29092
+      - KAFKA_GROUP_ID=image-agregation
+      - ACCOUNTRESP_TOPIC=accountResponsesTopic
+      - ACCOUNTREQ_TOPIC=accountRequestsTopic
+      - SMTP_FROM=
+      - SMTP_SERVER=
+      - SMTP_PORT=
+      - SMTP_USERNAME=
+      - SMTP_PASSWORD=
     ports:
       - 5090:5090
     restart: unless-stopped

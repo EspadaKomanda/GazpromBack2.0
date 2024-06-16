@@ -1,3 +1,4 @@
+import io
 from PIL import Image, ImageOps
 import cv2
 import grpc
