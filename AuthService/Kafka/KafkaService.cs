@@ -17,6 +17,7 @@ public class KafkaService
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IAccountService _accountService;
     private readonly IJwtService _jwtService;
+    private readonly string _authResponseTopic = Environment.GetEnvironmentVariable("AUTH_RESPONSE_TOPIC") ?? "authResponseTopic";
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,AccountService accountService, IJwtService jwtService)
     {
@@ -26,10 +27,10 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
         _jwtService = jwtService;
-        bool isTopicAvailable = IsTopicAvailable("authRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("AUTH_REQUESTS_TOPIC") ?? "authRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("authRequestsTopic");
+            _consumer.Subscribe(Environment.GetEnvironmentVariable("AUTH_REQUESTS_TOPIC") ?? "authRequestsTopic");
         }
         else
         {
@@ -88,7 +89,7 @@ public class KafkaService
                                 var validateResult = await _jwtService.ValidateRefreshToken(refreshTokenRequest.RefreshToken);
                                 if(validateResult.Item1)
                                 {
-                                    if(await Produce("authResponseTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_authResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(validateResult), 
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("validateRefresh")),
@@ -108,7 +109,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_authResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error validating refresh token",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("validateRefresh")),
@@ -124,7 +125,7 @@ public class KafkaService
                             try
                             {
                                 var loginRequest = JsonConvert.DeserializeObject<AccountLoginRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
-                                if(await Produce("authResponseTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                if(await Produce(_authResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                 Value = JsonConvert.SerializeObject(await _accountService.AccountLogin(loginRequest)), 
                                 Headers = [
                                     new Header("method", Encoding.UTF8.GetBytes("login")),
@@ -143,7 +144,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_authResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error logging in",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("login")),
@@ -177,7 +178,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_authResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error refreshing token",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("refreshToken")),

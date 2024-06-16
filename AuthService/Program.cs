@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,33 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IAccountService, AccountService>();
+builder.Services.AddSingleton(new ProducerBuilder<string,string>(
+    new ProducerConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "",
+        Partitioner = Partitioner.Murmur2,
+        CompressionType = Confluent.Kafka.CompressionType.None,
+        ClientId= Environment.GetEnvironmentVariable("KAFKA_CLIENT_ID") ?? ""
+    }
+).Build());
 
+builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
+    new ConsumerConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "",
+        GroupId = Environment.GetEnvironmentVariable("KAFKA_CLIENT_ID") ?? "", 
+        EnableAutoCommit = true,
+        AutoCommitIntervalMs = 10,
+        EnableAutoOffsetStore = true,
+        AutoOffsetReset = AutoOffsetReset.Latest
+    }
+).Build());
+builder.Services.AddSingleton(new AdminClientBuilder(
+    new AdminClientConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS")
+    }
+).Build());
 // Authorization
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Access", policy =>
