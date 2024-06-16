@@ -1,0 +1,26 @@
+services:
+  image-agregation-service:
+    build: ImageAgregationService
+    ports:
+      - 5072:5072
+    restart: unless-stopped
+  api-gateway-service:
+    build: ApiGatewayService
+    ports:
+      - 5071:5071
+    restart: unless-stopped
+  auth-service:
+    build: AuthService
+    ports:
+      - 5095:5095
+    restart: unless-stopped
+  dialog-service:
+    build: DialogService
+    ports:
+      - 5099:5099
+    restart: unless-stopped
+  user-service:
+    build: UserService
+    ports:
+      - 5090:5090
+    restart: unless-stopped
