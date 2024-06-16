@@ -17,7 +17,7 @@ public class KafkaService
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IAccountService _accountService;
     private readonly IJwtService _jwtService;
-    private readonly string _authResponseTopic = Environment.GetEnvironmentVariable("AUTH_RESPONSE_TOPIC") ?? "authResponseTopic";
+    private readonly string _authResponseTopic = Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "authResponseTopic";
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,AccountService accountService, IJwtService jwtService)
     {
@@ -27,10 +27,10 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
         _jwtService = jwtService;
-        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("AUTH_REQUESTS_TOPIC") ?? "authRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("AUTHREQ_TOPIC") ?? "authRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe(Environment.GetEnvironmentVariable("AUTH_REQUESTS_TOPIC") ?? "authRequestsTopic");
+            _consumer.Subscribe(Environment.GetEnvironmentVariable("AUTHREQ_TOPIC") ?? "authRequestsTopic");
         }
         else
         {

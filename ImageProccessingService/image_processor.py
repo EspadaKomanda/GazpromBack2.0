@@ -1,8 +1,10 @@
 from PIL import Image, ImageOps
 import cv2
+import grpc
 import numpy as np
 import imageProccessor_pb2 as pb2
 import imageProccessor_pb2_grpc as pb2_grpc
+from concurrent import futures
 
 def replace_colors(image, allowed_colors):
     image_data = image.load()
@@ -199,17 +201,18 @@ def process(byte_image, allowed_colors_str, background="transparent", width=512,
     image.save(img_byte_array, format='PNG')
     img_byte_array = img_byte_array.getvalue()
     return img_byte_array
-class GExchange(pb2_grpc.GExchangeServicer):
+class GExchange(pb2_grpc.ImageProcessorServicer):
    def VerifyImage(self, request, context):
        try:
          image = process(request.byte_image, request.allowed_colors_str, request.background, request.width, request.height, request.resolution_pos, request.text, request.font, request.should_check_colors)
-         return pb2.imageResponse()
+         return pb2.imageResponse( image_name="1234", error="", image_byte_array=image)
        except:
          return pb2.imageResponse()
        
 def serve():
-   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-   pb2_grpc.add_GExchangeServicer_to_server(GExchange(), server)
-   server.add_insecure_port("[::]:50051")
+   server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
+   pb2_grpc.add_ImageProcessorServicer_to_server(GExchange(), server)
+   server.add_insecure_port("[::]:5050")
    server.start()
    server.wait_for_termination()
+serve()
