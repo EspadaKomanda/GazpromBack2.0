@@ -70,9 +70,7 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseAuthentication();
 app.UseRouting();
-app.UseAuthorization();
 
 app.Run();
 
