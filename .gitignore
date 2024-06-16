@@ -10,6 +10,3 @@ local.session.sql
 bin
 obj
 
-#ml
-.Lora
-*.safetensors
