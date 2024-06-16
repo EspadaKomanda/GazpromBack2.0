@@ -40,10 +40,10 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 {
                     string prompt = await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
-                    _logger.LogInformation(image.ImageByteArray.ToByteArray().ToString());
+                    _logger.LogInformation(image.ImageByteArray.ToByteArray().Length.ToString());
                     ImageResponse finalImage = await SendImageRequest(image, generateImageRequest);
                     string imageName = Guid.NewGuid().ToString();
-                    _logger.LogInformation(finalImage.ImageBytes.ToByteArray().ToString());
+                    _logger.LogInformation(finalImage.ImageBytes.ToByteArray().Length.ToString());
                     if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, imageName))
                     {  
                         _logger.LogError("Error uploading image");
