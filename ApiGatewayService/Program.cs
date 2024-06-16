@@ -1,5 +1,22 @@
+using System.Reflection;
+using ApiGatewayService.Services.Accont;
+using ApiGatewayService.Services.ImageAgregationService;
+using AuthService.Services.Account;
+using AuthService.Services.Auth;
+using AuthService.Services.Jwt;
 using Confluent.Kafka;
+using DialogService.Services.DialogsService;
+using DialogService.Services.MessagesService;
+using ImageAgregationService.Services.MarkService;
+using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.Kafka;
+using Serilog;
+using Serilog.Exceptions;
+using Serilog.Sinks.OpenSearch;
+using UserService.Services;
+using UserService.Services.Account;
+using UserService.Services.Roles;
+using UserService.Services.UserInfoService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +53,18 @@ builder.Services.AddSingleton(new AdminClientBuilder(
 ).Build());
 builder.Services.AddSingleton<KafkaService>()
                 .AddSingleton<KafkaTopicManager>();
+builder.Services.AddTransient<IUserService, UserService.Services.UserInfoService.UserService>()
+                .AddTransient<ITemplateService, TemplateService>()
+                .AddTransient<IImageAgregationService,ApiGatewayService.Services.ImageAgregationService.ImageAgregationService>()
+                .AddTransient<IAccountService, AccountService>()
+                .AddTransient<IAuthService, AuthService.Services.Auth.AuthService>()
+                .AddTransient<IDialogsService, DialogService.Services.DialogsService.DialogService>()
+                .AddTransient<IMarkService, MarkService>()
+                .AddTransient<IJwtService, JwtService>()
+                .AddTransient<IMessagesService, MessageService>()
+                .AddTransient<IRolesService, RolesService>();
+
+                
 builder.Services.AddControllers();
 var app = builder.Build();
 
