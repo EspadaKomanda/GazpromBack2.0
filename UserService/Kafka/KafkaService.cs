@@ -22,7 +22,7 @@ public class KafkaService
     private readonly IUserInfoService _userService;
     private readonly string _userResponseTopic = Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountResponsesTopic";
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IAccountService accountService, IRolesService rolesService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IAccountService accountService, IRolesService rolesService, IUserInfoService userService)
     {
         _consumer = consumer;
         _producer = producer;
@@ -30,9 +30,11 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
         _rolesService = rolesService;
+        _userService = userService;
         bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "accountRequestsTopic");
         if(isTopicAvailable)
         {
+            _logger.LogInformation("Subscribing to topic");
             _consumer.Subscribe(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "accountRequestsTopic");
         }
         else
@@ -72,7 +74,7 @@ public class KafkaService
         {
             while (true)
             {
-                ConsumeResult<string, string> result = _consumer.Consume(5000);
+                ConsumeResult<string, string> result = _consumer.Consume(50);
 
                 if (result != null)
                 {

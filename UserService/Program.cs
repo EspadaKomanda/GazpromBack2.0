@@ -32,7 +32,7 @@ builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
     new ConsumerConfig()
     {
         BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092",
-        GroupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? "dialog-service", 
+        GroupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? "", 
         EnableAutoCommit = true,
         AutoCommitIntervalMs = 10,
         EnableAutoOffsetStore = true,
