@@ -1,5 +1,9 @@
 #Docker-Compose File for MainProject
 #Для поднятия ImageGenerationService докер не нужен, необходимо поставить необходимые библиотеки на вм с гпу и запустить питон
+#python -m pip install grpcio torch protobuf
+#python -m pip install --upgrade diffusers[torch]
+#python -m pip install -q diffusers transformers accelerate opencv-python
+#python -m pip install -U peft transformers
 #Для подключения логирования, необходимо в appsettings изменить настройки логирования в appsettings.json OpenSearchConfiguration
 services:
   image-agregation-service:
