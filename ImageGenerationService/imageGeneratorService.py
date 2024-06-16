@@ -29,10 +29,9 @@ class GExchange(pb2_grpc.ImageGeneratorServicer):
          return pb2.generateImageResponse(image_name="1234", template=request.template, error="Error generating image", image_byte_array=None)
        
 def serve():
-   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+   server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
    pb2_grpc.add_ImageGeneratorServicer_to_server(GExchange(), server)
    server.add_insecure_port("[::]:5051")
    server.start()
    server.wait_for_termination()
-generateImage("toy_face of a hacker with a hoodie")
 serve()

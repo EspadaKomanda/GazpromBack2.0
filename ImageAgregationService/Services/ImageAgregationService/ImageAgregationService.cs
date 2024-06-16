@@ -41,12 +41,13 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     string prompt = await GenerateValidPrompt(generateImageRequest.TemplateName, generateImageRequest.Text);
                     GenerateImageResponse image = await SendGenerateImageRequest(prompt); 
                     ImageResponse finalImage = await SendImageRequest(image, generateImageRequest);
-                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, Guid.NewGuid().ToString()))
+                    string imageName = Guid.NewGuid().ToString();
+                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, imageName))
                     {  
                         _logger.LogError("Error uploading image");
                         throw new UploadImageException("Error uploading image");
                     }
-                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(image.ImageName,generateImageRequest.TemplateName);
+                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(imageName,generateImageRequest.TemplateName);
                     var currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
                     if(currentTemplate==null)
                     {
@@ -56,7 +57,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     imageModel.Template = currentTemplate;
                     imageModel.Mark = new MarkModel(){ Name = "none"};
                     await _imageRepository.CreateImage(imageModel);
-                    _logger.LogInformation("Saved image model: {Name}", image.ImageName);
+                    _logger.LogInformation("Saved image model: {Name}", imageName);
                     ImageDto filalImage = new()
                     {
                         Name = imageModel.Name,

@@ -13,7 +13,7 @@ namespace ImageAgregationService.Singletones.Communicators
         public ImageProcessorCommunicator(ILogger<ImageProcessorCommunicator> logger)
         {
             _logger = logger;
-            GrpcChannel channel = GrpcChannel.ForAddress($"https://localhost:5001");
+            GrpcChannel channel = GrpcChannel.ForAddress(Environment.GetEnvironmentVariable("IMAGEPROCESSOR_URL") ?? "http://localhost:5000");
             _imageVerifierClient = new ImageProcessor.ImageProcessor.ImageProcessorClient(channel);
         }
         public async Task<ImageResponse> VerifyImage(GenerateImageResponse imageResponse, GenerateImageKafkaRequest generateImageKafkaRequest)
