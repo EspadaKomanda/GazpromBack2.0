@@ -6,6 +6,7 @@ import PIL.Image as Image
 import numpy as np
 from diffusers import DiffusionPipeline
 import torch
+import io
 
 def generateImage(prompt):
    pipe_id = "runwayml/stable-diffusion-v1-5"
@@ -18,20 +19,24 @@ def generateImage(prompt):
    image = pipe(
       prompt, num_inference_steps=30, cross_attention_kwargs={"scale": lora_scale}, generator=torch.manual_seed(0)
    ).images[0]
-   image_array = np.array(image)
-   return Image.fromarray((image_array * 255).astype("uint8"))
+   img_byte_array = io.BytesIO()
+   image.save(img_byte_array, format='PNG')
+   img_byte_array = img_byte_array.getvalue()
+   return img_byte_array
+   
 class GExchange(pb2_grpc.ImageGeneratorServicer):
    def GenerateImage(self, request, context):
        try:
          image = generateImage(request.prompt)
-         return pb2.generateImageResponse(image_name="1234", template=request.template, error="", image_byte_array=image.tobytes())
+         return pb2.GenerateImageResponse(image_name="1234", template=request.template, image_byte_array=image,error="")
        except:
-         return pb2.generateImageResponse(image_name="1234", template=request.template, error="Error generating image", image_byte_array=None)
+         return pb2.GenerateImageResponse(image_name="1234", template=request.template, image_byte_array=None, error="Error generating image")
        
 def serve():
-   server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
+   server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
    pb2_grpc.add_ImageGeneratorServicer_to_server(GExchange(), server)
    server.add_insecure_port("[::]:5051")
    server.start()
    server.wait_for_termination()
+generateImage("toy_face of a hacker with a hoodie")
 serve()

@@ -206,9 +206,9 @@ class GExchange(pb2_grpc.ImageProcessorServicer):
    def VerifyImage(self, request, context):
        try:
          image = process(request.byte_image, request.allowed_colors_str, request.background, request.width, request.height, request.resolution_pos, request.text, request.font, request.should_check_colors)
-         return pb2.imageResponse( image_name="1234", error="", image_byte_array=image)
+         return pb2.ImageResponse( image_name="1234", error="", image_byte_array=image)
        except:
-         return pb2.imageResponse()
+         return pb2.ImageResponse()
        
 def serve():
    server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
