@@ -13,7 +13,6 @@ def generateImage(prompt):
    pipe = DiffusionPipeline.from_pretrained(pipe_id, torch_dtype=torch.float16).to("cuda")
    pipe.load_lora_weights("./Lora", weight_name="Espada_v2-23.safetensors")
 
-   prompt = prompt
    lora_scale = 0.9
    image = pipe(
       prompt, num_inference_steps=30, cross_attention_kwargs={"scale": lora_scale}, generator=torch.manual_seed(0)
