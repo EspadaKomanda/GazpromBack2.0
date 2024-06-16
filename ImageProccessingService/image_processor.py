@@ -208,14 +208,6 @@ def process(byte_image, allowed_colors_str, background="transparent", width=512,
 class GExchange(pb2_grpc.ImageProcessorServicer):
    def VerifyImage(self, request, context):
        try:
-         print(request.request.allowed_colors_str)
-         print(request.request.background)
-         print(request.request.width)
-         print(request.request.height)
-         print(request.request.resolution_pos)
-         print(request.request.text)
-         print(request.request.font)
-         print(request.request.should_check_colors)
          image = process(request.byte_image, request.allowed_colors_str, request.background, request.width, request.height, request.resolution_pos, request.text, request.font, request.should_check_colors)
          return pb2.ImageResponse(image_bytes=image,error="")
        except Exception as e:
