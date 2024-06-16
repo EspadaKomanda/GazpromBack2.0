@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using AuthService.Validation.Attributes;
+using UserService.Validation.Attributes;
 
 namespace AuthService.Models.Account.Requests;
 

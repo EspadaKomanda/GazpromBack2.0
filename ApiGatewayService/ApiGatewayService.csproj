@@ -15,6 +15,9 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.6.0" />
+    <PackageReference Include="JWT" Version="10.1.1" />
+    <PackageReference Include="GitHubJwt" Version="0.0.6" />
   </ItemGroup>
 
 </Project>
