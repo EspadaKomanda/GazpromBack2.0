@@ -92,7 +92,7 @@ public class KafkaRequestResponseService
                     }
                     catch (Exception e)
                     {
-                        if (!(e is MyKafkaException))
+                        if (e is MyKafkaException)
                         {
                             _logger.LogError(e,"Consumer error");
                             throw new ConsumerException("Consumer error ",e);
@@ -107,7 +107,7 @@ public class KafkaRequestResponseService
         }
         catch(Exception ex)
         {
-            if (!(ex is MyKafkaException))
+            if (ex is MyKafkaException)
             {
                 _logger.LogError(ex,"Consumer error");
                 throw new ConsumerException("Consumer error ",ex);
@@ -119,6 +119,7 @@ public class KafkaRequestResponseService
             }
         }
     }
+
      public async Task<bool> Produce( string topicName,Message<string, string> message)
     {
         try

@@ -64,7 +64,7 @@ public class KafkaService
                 new ConsumerConfig()
                 {
                     BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS"),
-                    GroupId = "authConsumer"+Guid.NewGuid().ToString(), 
+                    GroupId = "gatewayConsumer"+Guid.NewGuid().ToString(), 
                     EnableAutoCommit = true,
                     AutoCommitIntervalMs = 10,
                     EnableAutoOffsetStore = true,

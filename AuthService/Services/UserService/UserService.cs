@@ -36,7 +36,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var user = await _kafkaRequestResponseService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountRequestsTopic", messageId, "getUserByUserName");
+                var user = await _kafkaRequestResponseService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountResponsesTopic", messageId, "getUserByUserName");
                 _logger.LogInformation("User aquired successefully");
                 return user;
             }
