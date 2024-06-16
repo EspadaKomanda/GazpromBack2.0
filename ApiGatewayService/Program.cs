@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Security.Claims;
 using ApiGatewayService.Services.Accont;
 using ApiGatewayService.Services.ImageAgregationService;
+using AuthService.Authentication;
 using AuthService.Services.Account;
 using AuthService.Services.Auth;
 using AuthService.Services.Jwt;
@@ -10,6 +12,7 @@ using DialogService.Services.MessagesService;
 using ImageAgregationService.Services.MarkService;
 using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.Kafka;
+using Microsoft.AspNetCore.Authentication;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
@@ -66,6 +69,25 @@ builder.Services.AddTransient<IUserService, UserService.Services.UserInfoService
 
                 
 builder.Services.AddControllers();
+
+// Authorization
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Access", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Access");
+    })
+    .AddPolicy("Refresh", policy =>
+    {
+        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
+    });
+    
+builder.Services.AddAuthentication("default")
+.AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
+{
+    Console.WriteLine(options.ToString());
+});
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

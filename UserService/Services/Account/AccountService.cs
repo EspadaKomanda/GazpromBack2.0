@@ -3,15 +3,17 @@ using UserService.Models.Account.Requests;
 using UserService.Repositories;
 using UserService.Exceptions.AccountExceptions;
 using UserService.Utils;
+using UserService.Models.Smtp;
 
 namespace UserService.Services.Account;
 
-public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, ILogger<AccountService> logger) : IAccountService
+public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, ILogger<AccountService> logger, ISmtpService smtpService) : IAccountService
 {
     private readonly IUserRepository _userRepo = userRepo;
     private readonly IUserProfileRepository _userProfileRepo = userProfileRepo;
     private readonly IRegistrationCodeRepository _regCodeRepo = regCodeRepo;
     private readonly ILogger<AccountService> _logger = logger;
+    private readonly ISmtpService _smtpService = smtpService;
 
     public async Task<bool> AccountFinishRegistration(AccountFinishRegistrationRequest request)
     {
@@ -153,7 +155,11 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             throw;
         }
 
-        //TODO: Send email
+        _smtpService.SendSystemMail(new EmailModel() {
+            To = request.Email,
+            Subject = "Account registration",
+            Body = $"Please use code {newRegCode.Code} to register your account"
+        });
 
         _logger.LogInformation("User {Email} requested registration email", request.Email);
         return true;
