@@ -7,7 +7,7 @@ namespace UserService.Services.Roles;
 
 public class RolesService(RoleRepository roleRepo, ILogger<RolesService> logger) : IRolesService
 {
-    private readonly RoleRepository _roleRepo = roleRepo;
+    private readonly IRoleRepository _roleRepo = roleRepo;
     private readonly ILogger<RolesService> _logger = logger;
     
     public async Task<RoleResponse> CreateRole(RoleCreateRequest request)

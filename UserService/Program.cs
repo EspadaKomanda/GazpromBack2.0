@@ -60,9 +60,9 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 builder.Services.AddScoped<ISmtpService, SmtpService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserProfileRepository, UserProfileRepository>();
-builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddTransient<IRoleRepository, RoleRepository>();
 builder.Services.AddTransient<IRegistrationCodeRepository, RegistrationCodeRepository>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
