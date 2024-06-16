@@ -1,0 +1,34 @@
+#dockerfile for keysDb
+version: '3'
+services:
+  keydb:
+    image: eqalpha/keydb:x86_64_v5.3.3
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./keydb-data:/data
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - AUTH_SOURCE=allow
+      - MAXMEMORY_POLICY=volatile_lru
+      - MAXMEMORY_DENSITY=0.2
+      - DB_TYPE=memory
+      - DB_PATH=/data
+      - DB_FILE_CREATE_DEST=/data
+      - DB_FILE_WRITE_DEST=/data
+      - DB_FILE_SYNC=yes
+      - DB_CACHESIZE=512M
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_HOSTS: keydb
+      REDIS_HOST: keydb
+      REDIS_PORT: keydb:6379
+      HTTP_USER: root
+      HTTP_PASSWORD: root
+    ports:
+      - 8081:8081
+volumes:
+  keydb-data:
