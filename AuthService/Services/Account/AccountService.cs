@@ -9,7 +9,7 @@ using BackGazprom.Kafka;
 
 namespace AuthService.Services.Account;
 
-public class AccountService(IJwtService jwtService, IUserService userService, ILogger<AccountService> logger, KafkaRequestResponseService kafkaRequestResponseService) : IAccountService
+public class AccountService(IJwtService jwtService, IUserService userService, ILogger<AccountService> logger) : IAccountService
 {
     private readonly IJwtService _jwtService = jwtService;
     private readonly IUserService _userService = userService;

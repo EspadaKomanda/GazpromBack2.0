@@ -23,7 +23,6 @@ builder.Services.AddSingleton<KafkaRequestResponseService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()

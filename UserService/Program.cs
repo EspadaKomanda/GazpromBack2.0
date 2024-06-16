@@ -64,6 +64,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddScoped<KafkaService>();
 // Logs
 builder.Host.UseSerilog();
