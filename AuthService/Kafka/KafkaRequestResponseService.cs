@@ -66,7 +66,7 @@ public class KafkaRequestResponseService
             localConsumer.Subscribe(topicName);
             while (true)
             {
-                ConsumeResult<string, string> result = localConsumer.Consume(50);
+                ConsumeResult<string, string> result = localConsumer.Consume();
 
                 if (result != null)
                 {

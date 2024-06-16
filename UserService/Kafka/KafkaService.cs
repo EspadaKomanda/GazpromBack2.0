@@ -74,7 +74,7 @@ public class KafkaService
         {
             while (true)
             {
-                ConsumeResult<string, string> result = _consumer.Consume(50);
+                ConsumeResult<string, string> result = _consumer.Consume();
 
                 if (result != null)
                 {
