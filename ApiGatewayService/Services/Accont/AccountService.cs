@@ -59,7 +59,7 @@ namespace ApiGatewayService.Services.Accont
             try
             {
                 Guid messageId = Guid.NewGuid();
-                if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNT_TOPIC") ?? "",
+                if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(request),
@@ -93,7 +93,7 @@ namespace ApiGatewayService.Services.Accont
             try
             {
                 Guid messageId = Guid.NewGuid();
-                if(await _kafkaService.Produce("accountRequestsTopic",
+                if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(request),
@@ -103,7 +103,7 @@ namespace ApiGatewayService.Services.Accont
                     }
                 }))
                 {
-                    var registerResponse = await _kafkaService.Consume<MessageResponse>("accountResponsesTopic", messageId, "register");
+                    var registerResponse = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "register");
                     _logger.LogInformation("Register successful, User: {User}", JsonConvert.SerializeObject(request));
                     return !registerResponse.Message.Contains("Error");
                 }
