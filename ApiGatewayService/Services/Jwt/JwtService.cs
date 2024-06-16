@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AuthService.Database.Models;
+using AuthService.Models.Account.Requests;
+using AuthService.Services.Account;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Services.Jwt;
@@ -11,9 +13,11 @@ public class JwtService : IJwtService
     private readonly string _issuer;
     private readonly string _audience;
     private readonly ILogger<JwtService> _logger;
-    public JwtService(ILogger<JwtService> logger)
+    private readonly IAuthService _authService;
+    public JwtService(ILogger<JwtService> logger, IAuthService authService)
     {
         _logger = logger;
+        _authService = authService;
 
         _issuer = Environment.GetEnvironmentVariable("AUTH_JWT_ISSUER") ?? "kvakvacloud";
         _audience = Environment.GetEnvironmentVariable("AUTH_JWT_AUDIENCE") ?? "kvakvacloud";
@@ -80,7 +84,10 @@ public class JwtService : IJwtService
     /// <returns>A tuple indicating whether the token is valid and the extracted username.</returns>
     public async Task<Tuple<bool, string>> ValidateRefreshToken(string? token)
     {
-        // TODO: Auth service needs a method to validate refresh tokens
-        throw new NotImplementedException();
+        if (token == null)
+        {
+            return new (false, "");
+        }
+        return await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
     }
 }
