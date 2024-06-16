@@ -55,7 +55,7 @@ public class KafkaRequestResponseService
             var localConsumer = new ConsumerBuilder<string,string>(
                 new ConsumerConfig()
                 {
-                    BootstrapServers = "90.156.218.15:29092",
+                    BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS"),
                     GroupId = "authConsumer"+Guid.NewGuid().ToString(), 
                     EnableAutoCommit = true,
                     AutoCommitIntervalMs = 10,
@@ -66,7 +66,7 @@ public class KafkaRequestResponseService
             localConsumer.Subscribe(topicName);
             while (true)
             {
-                ConsumeResult<string, string> result = localConsumer.Consume(5000);
+                ConsumeResult<string, string> result = localConsumer.Consume(50);
 
                 if (result != null)
                 {

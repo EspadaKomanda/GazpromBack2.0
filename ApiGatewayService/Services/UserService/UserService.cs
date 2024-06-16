@@ -26,12 +26,12 @@ public class UserService : IUserService
                 Key = messageId.ToString(),
                 Value = username,
                 Headers = new Headers(){
-                    new Header("method",Encoding.UTF8.GetBytes("getUserByUsername")),
+                    new Header("method",Encoding.UTF8.GetBytes("getUserByUserName")),
                     new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
                 }
             }))
             {
-                var user = await _kafkaService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "getUserByUsername");
+                var user = await _kafkaService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "getUserByUserName");
                 _logger.LogInformation("User found, User: {User}", username);
                 return user;
             }
