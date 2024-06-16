@@ -8,13 +8,41 @@ using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
 using UserService.Services.UserInfoService;
 using KafkaTestLib.Kafka;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
 configureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddSingleton(new ProducerBuilder<string,string>(
+    new ProducerConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092",
+        Partitioner = Partitioner.Murmur2,
+        CompressionType = Confluent.Kafka.CompressionType.None,
+        ClientId= Environment.GetEnvironmentVariable("KAFKA_CLIENT_ID"),
+        
+    }
+).Build());
 
+builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
+    new ConsumerConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092",
+        GroupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? "dialog-service", 
+        EnableAutoCommit = true,
+        AutoCommitIntervalMs = 10,
+        EnableAutoOffsetStore = true,
+        AutoOffsetReset = AutoOffsetReset.Latest
+    }
+).Build());
+builder.Services.AddSingleton(new AdminClientBuilder(
+    new AdminClientConfig()
+    {
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092"
+    }
+).Build());
 // Database
 builder.Services.AddDbContext<ApplicationContext>(x => {
     var Hostname=Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? "localhost";

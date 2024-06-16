@@ -20,6 +20,7 @@ public class KafkaService
     private readonly IAccountService _accountService;
     private readonly IRolesService _rolesService;
     private readonly IUserInfoService _userService;
+    private readonly string _userResponseTopic = Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "accountResponsesTopic";
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IAccountService accountService, IRolesService rolesService)
     {
@@ -29,10 +30,10 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _accountService = accountService;
         _rolesService = rolesService;
-        bool isTopicAvailable = IsTopicAvailable("accountRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "accountRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("accountRequestsTopic");
+            _consumer.Subscribe(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "accountRequestsTopic");
         }
         else
         {
@@ -91,7 +92,7 @@ public class KafkaService
                                 var finishRegistrationRequest = JsonConvert.DeserializeObject<AccountFinishRegistrationRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await _accountService.AccountFinishRegistration(finishRegistrationRequest))
                                 {
-                                    if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Registration successful",}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("finishRegistration")),
@@ -110,7 +111,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error finishing registration",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("finishRegistration")),
@@ -127,7 +128,7 @@ public class KafkaService
                                 var loginRequest = JsonConvert.DeserializeObject<AccountLoginRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await _accountService.AccountLogin(loginRequest))
                                 {
-                                    if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Login successful",}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("login")),
@@ -146,7 +147,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error logging in",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("login")),
@@ -163,7 +164,7 @@ public class KafkaService
                                 var registerRequest = JsonConvert.DeserializeObject<AccountRegisterRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await _accountService.AccountRegister(registerRequest))
                                 {
-                                    if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Registration successful",}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("register")),
@@ -182,7 +183,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error registering",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("register")),
@@ -199,7 +200,7 @@ public class KafkaService
                                 var changePasswordRequest = JsonConvert.DeserializeObject<AccountChangePasswordRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await _accountService.AccountChangePassword(changePasswordRequest))
                                 {
-                                    if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Password changed",}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("changePassword")),
@@ -218,7 +219,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error changing password",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("changePassword")),
@@ -233,7 +234,7 @@ public class KafkaService
                             try
                             {
                                 var createRoleRequest = JsonConvert.DeserializeObject<RoleCreateRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
-                                if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                 Value = JsonConvert.SerializeObject(await _rolesService.CreateRole(createRoleRequest)), 
                                 Headers = [
                                     new Header("method", Encoding.UTF8.GetBytes("createRole")),
@@ -252,7 +253,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error creating role",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("createRole")),
@@ -269,7 +270,7 @@ public class KafkaService
                                 var deleteRoleRequest = JsonConvert.DeserializeObject<RoleDeleteRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
                                 if(await _rolesService.DeleteRole(deleteRoleRequest))
                                 {
-                                    if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Role deleted",}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("deleteRole")),
@@ -288,7 +289,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting role",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("deleteRole")),
@@ -302,7 +303,7 @@ public class KafkaService
 
                             try
                             {
-                                if(await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                if(await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(_rolesService.GetRoles()),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("getRoles")),
@@ -320,7 +321,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting roles",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("getRoles")),
@@ -335,7 +336,7 @@ public class KafkaService
                             try
                             {
                                 var updateRoleRequest = JsonConvert.DeserializeObject<RoleUpdateRequest>(result.Message.Value)  ?? throw new NullReferenceException("Deserialization failed");
-                                if(await Produce("accountResponsesTopic",new Message<string, string>(){ 
+                                if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _rolesService.UpdateRole(updateRoleRequest)),
                                     Headers = [
@@ -355,7 +356,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error updating role",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("updateRole")),
@@ -370,7 +371,7 @@ public class KafkaService
                             try
                             {
                                 var user = await _userService.GetUserByUsername(result.Message.Value);
-                                if(await Produce("accountResponsesTopic",new Message<string, string>(){ 
+                                if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(user),
                                     Headers = [
@@ -390,7 +391,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("accountResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_userResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting user",}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("getUserByUserName")),
