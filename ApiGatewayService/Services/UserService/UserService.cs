@@ -21,7 +21,7 @@ public class UserService : IUserService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("accountRequestsTopic",
+            if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = username,
@@ -31,7 +31,7 @@ public class UserService : IUserService
                 }
             }))
             {
-                var user = await _kafkaService.Consume<User>("accountResponsesTopic", messageId, "getUserByUsername");
+                var user = await _kafkaService.Consume<User>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "getUserByUsername");
                 _logger.LogInformation("User found, User: {User}", username);
                 return user;
             }

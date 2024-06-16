@@ -24,7 +24,7 @@ public class RolesService : IRolesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("accountRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -34,7 +34,7 @@ public class RolesService : IRolesService
                 }
             }))
             {
-                var role = await _kafkaService.Consume<RoleResponse>("accountResponsesTopic", messageId, "createRole");
+                var role = await _kafkaService.Consume<RoleResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "createRole");
                 _logger.LogInformation("Role created, Role: {Role}", JsonConvert.SerializeObject(request));
                 return role;
             }
@@ -58,7 +58,7 @@ public class RolesService : IRolesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("accountRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -68,7 +68,7 @@ public class RolesService : IRolesService
                 }
             }))
             {
-                var deleteRoleResponse = await _kafkaService.Consume<MessageResponse>("accountResponsesTopic", messageId, "deleteRole");
+                var deleteRoleResponse = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "deleteRole");
                 _logger.LogInformation("Role deleted, Role: {Role}", JsonConvert.SerializeObject(request));
                 return !deleteRoleResponse.Message.Contains("Error");
             }
@@ -92,7 +92,7 @@ public class RolesService : IRolesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("accountRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Headers = new Headers(){
@@ -101,7 +101,7 @@ public class RolesService : IRolesService
                 }
             }))
             {
-                List<RoleResponse> roles = await _kafkaService.Consume<List<RoleResponse>>("accountResponsesTopic", messageId, "getRoles");
+                List<RoleResponse> roles = await _kafkaService.Consume<List<RoleResponse>>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "getRoles");
                 _logger.LogInformation("Roles found");
                 return roles;
             }
@@ -125,7 +125,7 @@ public class RolesService : IRolesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("accountRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -135,7 +135,7 @@ public class RolesService : IRolesService
                 }
             }))
             {
-                var role = await _kafkaService.Consume<RoleResponse>("accountResponsesTopic", messageId, "updateRole");
+                var role = await _kafkaService.Consume<RoleResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "updateRole");
                 _logger.LogInformation("Role updated, Role: {Role}", JsonConvert.SerializeObject(request));
                 return role;
             }

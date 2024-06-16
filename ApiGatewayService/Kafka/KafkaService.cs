@@ -63,7 +63,7 @@ public class KafkaService
             var localConsumer = new ConsumerBuilder<string,string>(
                 new ConsumerConfig()
                 {
-                    BootstrapServers = "90.156.218.15:29092",
+                    BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS"),
                     GroupId = "authConsumer"+Guid.NewGuid().ToString(), 
                     EnableAutoCommit = true,
                     AutoCommitIntervalMs = 10,

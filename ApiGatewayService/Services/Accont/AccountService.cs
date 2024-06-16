@@ -25,7 +25,7 @@ namespace ApiGatewayService.Services.Accont
             try
             {
                 Guid messageId = Guid.NewGuid();
-                if(await _kafkaService.Produce("accountRequestsTopic",
+                if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNTREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(request),
@@ -35,7 +35,7 @@ namespace ApiGatewayService.Services.Accont
                     }
                 }))
                 {
-                    var changePasswordResponse = await _kafkaService.Consume<MessageResponse>("accountResponsesTopic", messageId, "changePassword");
+                    var changePasswordResponse = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "changePassword");
                     _logger.LogInformation("Change password successful, User: {User}", JsonConvert.SerializeObject(request));
                     return !changePasswordResponse.Message.Contains("Error");
                 }
@@ -59,7 +59,7 @@ namespace ApiGatewayService.Services.Accont
             try
             {
                 Guid messageId = Guid.NewGuid();
-                if(await _kafkaService.Produce("accountRequestsTopic",
+                if(await _kafkaService.Produce(Environment.GetEnvironmentVariable("ACCOUNT_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(request),
@@ -69,7 +69,7 @@ namespace ApiGatewayService.Services.Accont
                     }
                 }))
                 {
-                    var finishRegistrationResponse = await _kafkaService.Consume<MessageResponse>("accountResponsesTopic", messageId, "finishRegistration");
+                    var finishRegistrationResponse = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("ACCOUNTRESP_TOPIC") ?? "", messageId, "finishRegistration");
                     _logger.LogInformation("Finish registration successful, User: {User}", JsonConvert.SerializeObject(request));
                     return !finishRegistrationResponse.Message.Contains("Error");
                 }

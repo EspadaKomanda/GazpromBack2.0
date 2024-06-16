@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("authRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("AUTHREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -33,7 +33,7 @@ public class AuthService : IAuthService
                 }
             }))
             {
-                var loginResponse = await _kafkaService.Consume<AccountTokensResponse>("authResponseTopic", messageId, "login");
+                var loginResponse = await _kafkaService.Consume<AccountTokensResponse>(Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "", messageId, "login");
                 _logger.LogInformation("Login successful, User: {User}", JsonConvert.SerializeObject(request));
                 return loginResponse;
             }
@@ -57,7 +57,7 @@ public class AuthService : IAuthService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("authRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("AUTHREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -67,7 +67,7 @@ public class AuthService : IAuthService
                 }
             }))
             {
-                var loginResponse = await _kafkaService.Consume<AccountTokensResponse>("authResponseTopic", messageId, "refreshToken");
+                var loginResponse = await _kafkaService.Consume<AccountTokensResponse>(Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "", messageId, "refreshToken");
                 _logger.LogInformation("Refresh token successful, User: {User}", JsonConvert.SerializeObject(request));
                 return loginResponse;
             }
@@ -91,7 +91,7 @@ public class AuthService : IAuthService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("authRequestsTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("AUTHREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(request),
@@ -101,7 +101,7 @@ public class AuthService : IAuthService
                 }
             }))
             {
-                var loginResponse = await _kafkaService.Consume<Tuple<bool, string>>("authResponseTopic", messageId, "validateRefreshToken");
+                var loginResponse = await _kafkaService.Consume<Tuple<bool, string>>(Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "", messageId, "validateRefreshToken");
                 _logger.LogInformation("Validate refresh token successful, User: {User}", JsonConvert.SerializeObject(request));
                 return loginResponse;
             }

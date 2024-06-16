@@ -23,7 +23,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
             try
             {
                 Guid currentId = Guid.NewGuid();
-                if(await _kafkaService.Produce("imageRequestsTopic",
+                if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key =currentId.ToString(),
                     Value = JsonConvert.SerializeObject(generateImageKafkaRequest),
@@ -33,7 +33,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
                     }
                 }))
                 {
-                    var imageDto = await _kafkaService.Consume<ImageDto>("imageResponsesTopic", currentId, "generateImage");
+                    var imageDto = await _kafkaService.Consume<ImageDto>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", currentId, "generateImage");
                     _logger.LogInformation("Image generated successfully, Text: {Text}, Template: {Template}", generateImageKafkaRequest.Text , generateImageKafkaRequest.TemplateName);
                     return imageDto;
                 }
@@ -57,7 +57,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
         {
             try
             {
-                if(await _kafkaService.Produce("imageRequestsTopic",
+                if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = Guid.NewGuid().ToString(),
                     Value = JsonConvert.SerializeObject(getImagesRequest),
@@ -67,7 +67,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
                     }
                 }))
                 {
-                    var imageDto = await _kafkaService.Consume<List<ImageDto>>("imageResponsesTopic", Guid.NewGuid(), "getImages");
+                    var imageDto = await _kafkaService.Consume<List<ImageDto>>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", Guid.NewGuid(), "getImages");
                     _logger.LogInformation("Images fetched successfully, Ids: {ids}", JsonConvert.SerializeObject(getImagesRequest));
                     return imageDto;
                 }

@@ -24,7 +24,7 @@ namespace ImageAgregationService.Services.MarkService
             try
             {
                 Guid messageId = Guid.NewGuid();
-                if(await _kafkaService.Produce("imageRequestsTopic",
+                if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
                     Value = JsonConvert.SerializeObject(updateMark),
@@ -34,7 +34,7 @@ namespace ImageAgregationService.Services.MarkService
                     }
                 }))
                 {
-                    var markDto = await _kafkaService.Consume<MarkDto>("imageResponsesTopic", messageId, "addMark");
+                    var markDto = await _kafkaService.Consume<MarkDto>( Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", messageId, "addMark");
                     _logger.LogInformation("Mark updated successfully, Mark: {Mark}", JsonConvert.SerializeObject(updateMark));
                     return markDto;
                 }

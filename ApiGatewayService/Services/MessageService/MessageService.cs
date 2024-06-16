@@ -24,7 +24,7 @@ public class MessageService : IMessagesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("dialogResponsesTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("DIALOGREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(obj),
@@ -34,7 +34,7 @@ public class MessageService : IMessagesService
                 }
             }))
             {
-                var dialog = await _kafkaService.Consume<MessageResponse>("dialogResponsesTopic", messageId, "deleteMessage");
+                var dialog = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("DIALOGRESP_TOPIC") ?? "", messageId, "deleteMessage");
                 _logger.LogInformation("Message deleted, Message: {Message}", JsonConvert.SerializeObject(obj));
                 return !dialog.Message.Contains("Error");
             }
@@ -58,7 +58,7 @@ public class MessageService : IMessagesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("dialogResponsesTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("DIALOGREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(obj),
@@ -68,7 +68,7 @@ public class MessageService : IMessagesService
                 }
             }))
             {
-                var dialog = await _kafkaService.Consume<MessageResponse>("dialogResponsesTopic", messageId, "getMessage");
+                var dialog = await _kafkaService.Consume<MessageResponse>(Environment.GetEnvironmentVariable("DIALOGRESP_TOPIC") ?? "", messageId, "getMessage");
                 _logger.LogInformation("Message received, Message: {Message}", JsonConvert.SerializeObject(obj));
                 return JsonConvert.DeserializeObject<Message>(dialog.Message)!;
             }
@@ -92,7 +92,7 @@ public class MessageService : IMessagesService
         try
         {
             Guid messageId = Guid.NewGuid();
-            if(await _kafkaService.Produce("dialogResponsesTopic",
+            if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("DIALOGREQ_TOPIC") ?? "",
             new Confluent.Kafka.Message<string, string>(){ 
                 Key = messageId.ToString(),
                 Value = JsonConvert.SerializeObject(obj),
@@ -102,7 +102,7 @@ public class MessageService : IMessagesService
                 }
             }))
             {
-                var message = await _kafkaService.Consume<Message>("dialogResponsesTopic", messageId, "sendMessage");
+                var message = await _kafkaService.Consume<Message>(Environment.GetEnvironmentVariable("DIALOGRESP_TOPIC") ?? "", messageId, "sendMessage");
                 _logger.LogInformation("Message sent, Message: {Message}", JsonConvert.SerializeObject(obj));
                 return message;
             } 
