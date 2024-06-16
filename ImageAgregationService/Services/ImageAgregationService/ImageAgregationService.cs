@@ -64,6 +64,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     _logger.LogInformation("Saved image model: {Name}", imageName);
                     ImageDto filalImage = new()
                     {
+                        Id = imageModel.Id,
                         Name = imageModel.Name,
                         Url = imageModel.Url,
                         Mark = new MarkDto()
