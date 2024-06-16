@@ -48,10 +48,10 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// </summary>
     /// <response code="200">Сообщения получены</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpGet]
     [Route("getDialogs")]
     [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<List<Dialog>>> GetDialogMessages([FromBody] GetDialogMessagesRequest model)
+    public async Task<ActionResult<List<Dialog>>> GetDialogMessages([FromQuery] GetDialogMessagesRequest model)
     {
         if (!ModelState.IsValid)
         {
@@ -78,10 +78,10 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// </summary>
     /// <response code="200">Список диалогов получен</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpGet]
     [Route("getDialogsByOwnerId")]
     [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<List<Dialog>>> GetDialogsByOwnerId([FromBody] GetDialogsByIdRequest model)
+    public async Task<ActionResult<List<Dialog>>> GetDialogsByOwnerId([FromQuery] GetDialogsByIdRequest model)
     {
         if (!ModelState.IsValid)
         {
@@ -108,7 +108,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// </summary>
     /// <response code="200">Диалог удален</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpDelete]
     [Route("deleteDialog")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteDialog([FromBody] DeleteDialogRequest model)

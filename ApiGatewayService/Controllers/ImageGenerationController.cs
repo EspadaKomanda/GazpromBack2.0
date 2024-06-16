@@ -49,11 +49,11 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
     /// </summary>
     /// <response code="200">Изображения получены</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpGet]
     [Route("getImages")]
     [Authorize(Roles = "User", Policy = "Access")]
     [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<List<ImageDto>>> GetImages([FromBody] GetImagesKafkaRequest model)
+    public async Task<ActionResult<List<ImageDto>>> GetImages([FromQuery] GetImagesKafkaRequest model)
     {
         if (!ModelState.IsValid)
         {

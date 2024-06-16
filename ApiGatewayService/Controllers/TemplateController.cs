@@ -16,12 +16,12 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <summary>
     /// Возвращает список шаблонов
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Шаблоны получены</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpGet]
     [Route("getTemplates")]
     [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<List<TemplateDto>>> GetTemplates([FromBody] GetTemplateKafkaRequest model)
+    public async Task<ActionResult<List<TemplateDto>>> GetTemplates([FromQuery] GetTemplateKafkaRequest model)
     {
         if (!ModelState.IsValid)
         {
@@ -46,7 +46,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <summary>
     /// Добавляет шаблон
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Шаблон добавлен</response>
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("addTemplate")]
@@ -76,9 +76,9 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <summary>
     /// Удаляет шаблон
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Шаблон удален</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpDelete]
     [Route("deleteTemplate")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteTemplate([FromBody] DeleteTemplateKafkaRequest model)
@@ -106,9 +106,9 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <summary>
     /// Обновляет шаблон
     /// </summary>
-    /// <response code="200">Успешная генерация</response>
+    /// <response code="200">Шаблон обновлен</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpPatch]
     [Route("updateTemplate")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateTemplate([FromBody] UpdateTemplateKafkaRequest model)

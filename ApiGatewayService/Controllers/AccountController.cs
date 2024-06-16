@@ -38,7 +38,6 @@ public class AccountController(IAccountService accountService) : ControllerBase
         {
             if (e is RegisterException)
             {
-                // FIXME: Completely uninformative service exceptions
                 return Forbid(e.ToString());
             }
             return StatusCode(500);
@@ -68,7 +67,6 @@ public class AccountController(IAccountService accountService) : ControllerBase
         {
             if (e is FinishRegistrationException)
             {
-                // FIXME: Completely uninformative service exceptions
                 return Forbid(e.ToString());
             }
             return StatusCode(500);

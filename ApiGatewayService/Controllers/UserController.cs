@@ -18,7 +18,7 @@ public class UserController(IUserService userService) : ControllerBase
     /// <response code="404">Пользователь не найден</response>
     [HttpGet]
     [Route("getUserByUsername")]
-    public async Task<ActionResult<User>> GetUserByUsername(string username)
+    public async Task<ActionResult<User>> GetUserByUsername([FromQuery] string username)
     {
         if (!ModelState.IsValid)
         {
