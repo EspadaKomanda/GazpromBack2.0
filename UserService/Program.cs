@@ -9,6 +9,8 @@ using Serilog.Sinks.OpenSearch;
 using UserService.Services.UserInfoService;
 using KafkaTestLib.Kafka;
 using Confluent.Kafka;
+using UserService.Services;
+using MireaHackBack.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +56,7 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 });
 
 // Services
+builder.Services.AddScoped<ISmtpService, SmtpService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddTransient<IUserInfoService, UserInfoService>();
