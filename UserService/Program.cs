@@ -58,14 +58,14 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 
 // Services
 builder.Services.AddScoped<ISmtpService, SmtpService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
+builder.Services.AddTransient<IRoleRepository, RoleRepository>();
+builder.Services.AddTransient<IRegistrationCodeRepository, RegistrationCodeRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddScoped<KafkaService>();
 // Logs

@@ -19,7 +19,7 @@ public class KafkaService
     private readonly IJwtService _jwtService;
     private readonly string _authResponseTopic = Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "authResponseTopic";
     
-    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,AccountService accountService, IJwtService jwtService)
+    public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager,IAccountService accountService, IJwtService jwtService)
     {
         _consumer = consumer;
         _producer = producer;
