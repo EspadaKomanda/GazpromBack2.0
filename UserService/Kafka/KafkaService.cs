@@ -374,7 +374,7 @@ public class KafkaService
 
                             try
                             {
-                                Thread.Sleep(2000);
+                                Thread.Sleep(3000);
                                 var user = await _userService.GetUserByUsername(result.Message.Value);
                                 if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
