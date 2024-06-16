@@ -4,16 +4,18 @@ using UserService.Repositories;
 using UserService.Exceptions.AccountExceptions;
 using UserService.Utils;
 using UserService.Models.Smtp;
+using UserService.Services.Roles;
 
 namespace UserService.Services.Account;
 
-public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, ILogger<AccountService> logger, ISmtpService smtpService) : IAccountService
+public class AccountService(IUserRepository userRepo, IUserProfileRepository userProfileRepo, IRegistrationCodeRepository regCodeRepo, ILogger<AccountService> logger, ISmtpService smtpService, IRoleRepository roleRepository) : IAccountService
 {
     private readonly IUserRepository _userRepo = userRepo;
     private readonly IUserProfileRepository _userProfileRepo = userProfileRepo;
     private readonly IRegistrationCodeRepository _regCodeRepo = regCodeRepo;
     private readonly ILogger<AccountService> _logger = logger;
     private readonly ISmtpService _smtpService = smtpService;
+    private readonly IRoleRepository _rolesService = roleRepository;
 
     public async Task<bool> AccountFinishRegistration(AccountFinishRegistrationRequest request)
     {
@@ -39,7 +41,8 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
            Email = regcode.Email,
            Password = BcryptUtils.HashPassword(request.Password),
            RegistrationDate = DateTime.UtcNow,
-           PasswordChangeDate = DateTime.UtcNow
+           PasswordChangeDate = DateTime.UtcNow,
+           Role = _rolesService.GetRoles().First(x=>x.Name == "user")
         };
 
         try
@@ -58,7 +61,8 @@ public class AccountService(IUserRepository userRepo, IUserProfileRepository use
             User = user,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            About = request.About,
+            About = request.About
+            
         };
 
         try
