@@ -21,10 +21,10 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddSingleton<KafkaRequestResponseService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
-builder.Services.AddTransient<IJwtService, JwtService>();
-builder.Services.AddTransient<IAccountService, AccountService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
-builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()
     {

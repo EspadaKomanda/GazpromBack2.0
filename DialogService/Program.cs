@@ -58,8 +58,8 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 // Services
 builder.Services.AddTransient<IDialogRepository, DialogRepository>();
 builder.Services.AddTransient<IMessageRepository, MessageRepository>();
-builder.Services.AddTransient<IDialogsService, DialogsService>();
-builder.Services.AddTransient<IMessagesService, MessagesService>();
+builder.Services.AddScoped<IDialogsService, DialogsService>();
+builder.Services.AddScoped<IMessagesService, MessagesService>();
 builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddScoped<KafkaService>();
 

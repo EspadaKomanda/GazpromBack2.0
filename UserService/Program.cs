@@ -59,11 +59,11 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 builder.Services.AddScoped<ISmtpService, SmtpService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
-builder.Services.AddTransient<IUserInfoService, UserInfoService>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRegistrationCodeRepository, RegistrationCodeRepository>();
-builder.Services.AddTransient<IAccountService, AccountService>();
-builder.Services.AddTransient<IUserInfoService, UserInfoService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<KafkaService>();
 // Logs
 builder.Host.UseSerilog();
