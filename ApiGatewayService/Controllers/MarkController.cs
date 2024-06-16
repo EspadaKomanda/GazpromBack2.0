@@ -19,7 +19,6 @@ public class MarkController(IMarkService markService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpPatch]
     [Route("updateMark")]
-    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateMark([FromBody] UpdateMarkKafkaRequest model)
     {
         if (!ModelState.IsValid)

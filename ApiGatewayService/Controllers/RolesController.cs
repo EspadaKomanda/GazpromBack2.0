@@ -19,7 +19,6 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getRoles")]
-    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<List<Role>>> GetRoles()
     {
         if (!ModelState.IsValid)
@@ -49,7 +48,6 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("addRole")]
-    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> CreateRole([FromBody] RoleCreateRequest model)
     {
         if (!ModelState.IsValid)
@@ -79,7 +77,6 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpPatch]
     [Route("updateRole")]
-    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateRole([FromBody] RoleUpdateRequest model)
     {
         if (!ModelState.IsValid)
@@ -109,7 +106,6 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpDelete]
     [Route("deleteRole")]
-    [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteRole([FromBody] RoleDeleteRequest model)
     {
         if (!ModelState.IsValid)
