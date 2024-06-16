@@ -23,24 +23,24 @@ configureLogging();
 
 // Add services to the container.
 builder.Services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "83.166.239.45";
-    options.InstanceName = "image_aggregation";
+    options.Configuration =  Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") ?? "localhost:6379";
+    options.InstanceName =  Environment.GetEnvironmentVariable("REDIS_INSTANCE_NAME") ?? "default";
 });
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()
     {
-        BootstrapServers = "90.156.218.15:29092",
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "",
         Partitioner = Partitioner.Murmur2,
         CompressionType = Confluent.Kafka.CompressionType.None,
-        ClientId="image-producer"
+        ClientId= Environment.GetEnvironmentVariable("KAFKA_CLIENT_ID")
     }
 ).Build());
 
 builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
     new ConsumerConfig()
     {
-        BootstrapServers = "90.156.218.15:29092",
-        GroupId = "image-consumer", 
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "",
+        GroupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? "", 
         EnableAutoCommit = true,
         AutoCommitIntervalMs = 10,
         EnableAutoOffsetStore = true,
@@ -50,7 +50,7 @@ builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
 builder.Services.AddSingleton(new AdminClientBuilder(
     new AdminClientConfig()
     {
-        BootstrapServers = "90.156.218.15:29092"
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? ""
     }
 ).Build());
 builder.Services.AddSingleton<IAmazonS3>(sc =>
@@ -58,7 +58,7 @@ builder.Services.AddSingleton<IAmazonS3>(sc =>
     var awsS3Config = new AmazonS3Config
     {
         RegionEndpoint = RegionEndpoint.USEast1,
-        ServiceURL = "http://83.166.237.29:9000",
+        ServiceURL = Environment.GetEnvironmentVariable("S3_URL") ?? "",
         ForcePathStyle = true
     };
 
@@ -66,16 +66,15 @@ builder.Services.AddSingleton<IAmazonS3>(sc =>
 })
 .AddSingleton<ConfigReader>();
 builder.Services.AddDbContext<ApplicationContext>(x => {
-    var Hostname="83.166.239.45";
-    var Port="5432";
-    var Name="imageagregationdb";
-    var Username="postgres";
-    var Password="QWERTYUIO2313";
+    var Hostname=Environment.GetEnvironmentVariable("DB_HOSTNAME") ?? "localhost";
+    var Port=Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+    var Name=Environment.GetEnvironmentVariable("DB_NAME") ?? "postgres";
+    var Username=Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres";
+    var Password=Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
     x.UseNpgsql($"Server={Hostname}:{Port};Database={Name};Uid={Username};Pwd={Password};");
 });
 builder.Services.AddSingleton<ImageGenerationCommunicator>();
-builder.Services.AddSingleton<ImageVerifierCommunicator>();
-builder.Services.AddSingleton<ImageTextAdderCommunicator>();
+builder.Services.AddSingleton<ImageProcessorCommunicator>();
 builder.Services.AddTransient<IS3Service, S3Service>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();

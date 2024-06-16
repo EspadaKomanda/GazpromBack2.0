@@ -21,6 +21,7 @@ public class KafkaService
     private readonly IImageAgregationService _imageAgregationService;
     private readonly ITemplateService _templateService;
     private readonly IMarkService _markService;
+    private readonly string _imageResponseTopic = Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "imageResponseTopic";
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IImageAgregationService imageAgregationService, ITemplateService templateService, IMarkService markService)
     {
@@ -31,10 +32,10 @@ public class KafkaService
         _imageAgregationService = imageAgregationService;
         _templateService = templateService;
         _markService = markService;
-        bool isTopicAvailable = IsTopicAvailable("imageRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "imageRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("imageRequestsTopic");
+            _consumer.Subscribe(Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "imageRequestsTopic");
         }
         else
         {
@@ -92,7 +93,7 @@ public class KafkaService
                                 var message = JsonConvert.DeserializeObject<GenerateImageKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("message is null");
                                 
                                 ImageDto image = await _imageAgregationService.GetImage(result.Message.Key,message);
-                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                 Value = JsonConvert.SerializeObject(image), 
                                 Headers = [ 
                                     new Header("method", Encoding.UTF8.GetBytes("generateImage")),
@@ -110,7 +111,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("imageResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error generating image"}),
@@ -129,7 +130,7 @@ public class KafkaService
                             {
                                 List<TemplateDto> templates = await _templateService.GetTemplates() ?? throw new NullReferenceException("Error getting templates");
 
-                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
                                         Value = JsonConvert.SerializeObject(templates),
                                         Headers = [
                                                 new Header("method", Encoding.UTF8.GetBytes("getTemplates")),
@@ -146,7 +147,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("imageResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting templates"}),
@@ -166,7 +167,7 @@ public class KafkaService
                                 TemplateDto template = JsonConvert.DeserializeObject<TemplateDto>(result.Message.Value) ?? throw new NullReferenceException("Template was null");
                                 if (await _templateService.AddTemplate(template))
                                 {
-                                    if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                    if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template added"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
@@ -184,7 +185,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error adding template"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
@@ -202,7 +203,7 @@ public class KafkaService
                                 .DeserializeObject<DeleteTemplateKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("Serialization failed");
                                 if(await _templateService.DeleteTemplate(template))
                                 {
-                                    if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                    if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template deleted"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("deleteTemplate")),
@@ -220,7 +221,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting template"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
@@ -236,7 +237,7 @@ public class KafkaService
                             {
                                 UpdateTemplateKafkaRequest template = JsonConvert
                                 .DeserializeObject<UpdateTemplateKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("Serialization failed");
-                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
                                  Value = JsonConvert.SerializeObject(await _templateService.UpdateTemplate(template)),
                                  Headers = [
                                     new Header("method", Encoding.UTF8.GetBytes("updateTemplate")),
@@ -253,7 +254,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting template"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
@@ -269,7 +270,7 @@ public class KafkaService
                             {
                                 UpdateMarkKafkaRequest updateMark = JsonConvert
                                 .DeserializeObject<UpdateMarkKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("Serialization failed");
-                                if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
                                 Value = JsonConvert.SerializeObject(await _markService.UpdateMark(updateMark)),
                                 Headers = [
                                     new Header("method", Encoding.UTF8.GetBytes("updateMark")),
@@ -286,7 +287,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error updating mark"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("updateMark")),
@@ -305,7 +306,7 @@ public class KafkaService
                                 List<ImageDto> images = await _imageAgregationService.GetImages(getImages);
                                 if(images!=null)
                                 {
-                                    if(await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key,
+                                    if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(images),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("getImages")),
@@ -322,7 +323,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                await Produce("imageResponsesTopic",new Message<string, string>(){ Key = result.Message.Key, 
+                                await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting images"}),
                                         Headers = [
                                             new Header("method", Encoding.UTF8.GetBytes("getImages")),
