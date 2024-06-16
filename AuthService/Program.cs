@@ -84,6 +84,7 @@ Thread thread = new(async () => {
     await kafkaService.Consume();
 });
 
+thread.Start();
 app.Run();
 
 void configureLogging(){

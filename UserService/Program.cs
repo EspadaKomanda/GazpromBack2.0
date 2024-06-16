@@ -77,7 +77,7 @@ Thread thread = new(async () => {
     var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
     await kafkaService.Consume();
 });
-
+thread.Start();
 app.Run();
 
 void configureLogging(){
