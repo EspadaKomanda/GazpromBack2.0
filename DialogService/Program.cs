@@ -10,6 +10,7 @@ using DialogService.Repositories;
 using DialogService.Services.DialogsService;
 using DialogService.Services.MessagesService;
 using Confluent.Kafka;
+using KafkaTestLib.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +60,8 @@ builder.Services.AddTransient<IDialogRepository, DialogRepository>();
 builder.Services.AddTransient<IMessageRepository, MessageRepository>();
 builder.Services.AddTransient<IDialogsService, DialogsService>();
 builder.Services.AddTransient<IMessagesService, MessagesService>();
-
+builder.Services.AddSingleton<KafkaTopicManager>();
+builder.Services.AddScoped<KafkaService>();
 
 
 builder.Services.AddControllers();
@@ -72,6 +74,12 @@ app.UseAuthentication();
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+Thread thread = new(async () => {
+   
+    using var scope = app.Services.CreateScope();
+    var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
+    await kafkaService.Consume();
+});
 
 app.Run();
 

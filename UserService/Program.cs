@@ -71,6 +71,12 @@ builder.Host.UseSerilog();
 var app = builder.Build();
 
 app.UseRouting();
+Thread thread = new(async () => {
+   
+    using var scope = app.Services.CreateScope();
+    var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
+    await kafkaService.Consume();
+});
 
 app.Run();
 

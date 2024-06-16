@@ -8,6 +8,10 @@ using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
 using Confluent.Kafka;
+using BackGazprom.Kafka;
+using KafkaTestLib.Kafka;
+using AuthService.Services.UserService;
+using BackGazprom.Services.UserService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +19,12 @@ configureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
 
+builder.Services.AddSingleton<KafkaRequestResponseService>();
+builder.Services.AddSingleton<KafkaTopicManager>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IAccountService, AccountService>();
+
+builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()
     {
@@ -44,6 +52,7 @@ builder.Services.AddSingleton(new AdminClientBuilder(
         BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS")
     }
 ).Build());
+builder.Services.AddScoped<KafkaService>();
 // Authorization
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Access", policy =>
@@ -68,6 +77,12 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseRouting();
 app.UseAuthorization();
+Thread thread = new(async () => {
+   
+    using var scope = app.Services.CreateScope();
+    var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
+    await kafkaService.Consume();
+});
 
 app.Run();
 
