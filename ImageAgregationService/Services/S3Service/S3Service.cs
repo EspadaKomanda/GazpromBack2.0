@@ -161,11 +161,13 @@ namespace ImageAgregationService.Services
         {
             try
             {
+                Console.WriteLine(generateImageResponse.ImageBytes.ToByteArray().Length);
                 PutObjectResponse response = await _s3Client.PutObjectAsync(new PutObjectRequest
                 {
                     BucketName = template,
                     Key = imageName,
-                    InputStream = new MemoryStream(generateImageResponse.ImageBytes.ToByteArray())
+                    InputStream = new MemoryStream(generateImageResponse.ImageBytes.ToByteArray()),
+                    ContentType = "image/png"
                 });
                 if(response.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
