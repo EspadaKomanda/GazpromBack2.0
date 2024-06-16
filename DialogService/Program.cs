@@ -19,10 +19,10 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()
     {
-        BootstrapServers = "90.156.218.15:29092",
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092",
         Partitioner = Partitioner.Murmur2,
         CompressionType = Confluent.Kafka.CompressionType.None,
-        ClientId="image-producer",
+        ClientId= Environment.GetEnvironmentVariable("KAFKA_CLIENT_ID"),
         
     }
 ).Build());
@@ -30,8 +30,8 @@ builder.Services.AddSingleton(new ProducerBuilder<string,string>(
 builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
     new ConsumerConfig()
     {
-        BootstrapServers = "90.156.218.15:29092",
-        GroupId = "image-consumer", 
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092",
+        GroupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? "dialog-service", 
         EnableAutoCommit = true,
         AutoCommitIntervalMs = 10,
         EnableAutoOffsetStore = true,
@@ -41,7 +41,7 @@ builder.Services.AddSingleton(new ConsumerBuilder<string,string>(
 builder.Services.AddSingleton(new AdminClientBuilder(
     new AdminClientConfig()
     {
-        BootstrapServers = "90.156.218.15:29092"
+        BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKERS") ?? "localhost:29092"
     }
 ).Build());
 // Database

@@ -18,6 +18,7 @@ public class KafkaService
     private readonly KafkaTopicManager _kafkaTopicManager;
     private readonly IDialogsService _dialogsService;
     private readonly IMessagesService _messageService;
+    private readonly string _dialogResponseTopic = Environment.GetEnvironmentVariable("DIALOGRESP_TOPIC") ?? "dialogsResponsesTopic";
     
     public KafkaService(ILogger<KafkaService> logger, IProducer<string, string> producer, IConsumer<string, string> consumer, KafkaTopicManager kafkaTopicManager, IDialogsService dialogsService, IMessagesService messageService)
     {
@@ -27,10 +28,10 @@ public class KafkaService
         _kafkaTopicManager = kafkaTopicManager;
         _dialogsService = dialogsService;
         _messageService = messageService;
-        bool isTopicAvailable = IsTopicAvailable("dialogsRequestsTopic");
+        bool isTopicAvailable = IsTopicAvailable(Environment.GetEnvironmentVariable("DIALOGREQ_TOPIC") ?? "dialogsRequestsTopic");
         if(isTopicAvailable)
         {
-            _consumer.Subscribe("dialogsRequestsTopic");
+            _consumer.Subscribe(Environment.GetEnvironmentVariable("DIALOGREQ_TOPIC") ?? "dialogsRequestsTopic");
         }
         else
         {
@@ -88,7 +89,7 @@ public class KafkaService
                                 var request = JsonConvert.DeserializeObject<ClearDialogRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
                                 if(await _dialogsService.ClearDialog(request))
                                 {
-                                    if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                    if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                         Key = result.Message.Key,
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Dialog cleared" }),
                                         Headers = [
@@ -109,7 +110,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error clearing dialog" }),
@@ -129,7 +130,7 @@ public class KafkaService
                             try
                             {
                                 var request = JsonConvert.DeserializeObject<CreateDialogRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
-                                if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _dialogsService.CreateDialog(request)),
                                     Headers = [
@@ -150,7 +151,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error creating dialog" }),
@@ -170,7 +171,7 @@ public class KafkaService
                                 var request = JsonConvert.DeserializeObject<DeleteDialogRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
                                 if(await _dialogsService.DeleteDialog(request)) 
                                 {
-                                    if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                    if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                         Key = result.Message.Key,
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Dialog deleted" }),
                                         Headers = [
@@ -191,7 +192,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting dialog" }),
@@ -209,7 +210,7 @@ public class KafkaService
                             try
                             {
                                 var request = JsonConvert.DeserializeObject<GetDialogsByIdRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
-                                if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _dialogsService.GetDialogsByOwnerId(request)),
                                     Headers = [
@@ -230,7 +231,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting dialogs" }),
@@ -248,7 +249,7 @@ public class KafkaService
                             try
                             {
                                 var request = JsonConvert.DeserializeObject<GetDialogMessagesRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
-                                if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _dialogsService.GetDialogMessages(request)),
                                     Headers = [
@@ -268,7 +269,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting messages" }),
@@ -288,7 +289,7 @@ public class KafkaService
                                 var request = JsonConvert.DeserializeObject<DeleteMessageRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
                                 if(await _messageService.DeleteMessage(request)) 
                                 {
-                                    if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                    if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                         Key = result.Message.Key,
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Message deleted" }),
                                         Headers = [
@@ -309,7 +310,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting message" }),
@@ -327,7 +328,7 @@ public class KafkaService
                             try
                             {
                                 var request = JsonConvert.DeserializeObject<GetMessageRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
-                                if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _messageService.GetMessage(request)),
                                     Headers = [
@@ -347,7 +348,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting message" }),
@@ -365,7 +366,7 @@ public class KafkaService
                             try
                             {
                                 var request = JsonConvert.DeserializeObject<SendMessageRequest>(result.Message.Value) ?? throw new NullReferenceException("headerBytes is null");
-                                if(await Produce("dialogResponsesTopic", new Message<string, string>(){
+                                if(await Produce(_dialogResponseTopic, new Message<string, string>(){
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(await _messageService.SendMessage(request)),
                                     Headers = [
@@ -385,7 +386,7 @@ public class KafkaService
                                     _logger.LogError(e,"Error sending message");
                                     throw;
                                 }
-                                _ = await Produce("dialogResponsesTopic", new Message<string, string>()
+                                _ = await Produce(_dialogResponseTopic, new Message<string, string>()
                                 {
                                     Key = result.Message.Key,
                                     Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error sending message" }),
