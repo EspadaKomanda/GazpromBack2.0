@@ -77,7 +77,7 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// </summary>
     /// <response code="200">Роль обновлена</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpPatch]
     [Route("updateRole")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateRole([FromBody] RoleUpdateRequest model)
@@ -107,7 +107,7 @@ public class RolesController(IRolesService rolesService) : ControllerBase
     /// </summary>
     /// <response code="200">Роль удалена</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpDelete]
     [Route("deleteRole")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteRole([FromBody] RoleDeleteRequest model)

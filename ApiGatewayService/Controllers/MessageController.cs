@@ -48,10 +48,10 @@ public class MessageController(IMessagesService messageService) : ControllerBase
     /// </summary>
     /// <response code="200">Сообщение получено</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpGet]
     [Route("getMessage")]
     [Authorize(Roles = "User", Policy = "Access")]
-    public async Task<ActionResult<Message>> GetMessage([FromBody] GetMessageRequest model)
+    public async Task<ActionResult<Message>> GetMessage([FromQuery] GetMessageRequest model)
     {
         if (!ModelState.IsValid)
         {
@@ -78,7 +78,7 @@ public class MessageController(IMessagesService messageService) : ControllerBase
     /// </summary>
     /// <response code="200">Сообщение удалено</response>
     /// <response code="400">Неверные данные</response>
-    [HttpPost]
+    [HttpDelete]
     [Route("deleteMessage")]
     [Authorize(Roles = "User", Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteMessage([FromBody] DeleteMessageRequest model)
