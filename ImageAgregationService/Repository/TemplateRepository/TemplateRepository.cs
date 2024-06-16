@@ -21,13 +21,12 @@ namespace ImageAgregationService.Repository
 
         public async Task GenerateTemplates(List<string> templates)
         {
-            foreach (var template in templates)
-            {
-                if(!await DoesTemplateExist(template))
-                {
-                    await CreateTemplate(new TemplateModel{Name = template, DefaultPrompt="testprompt"});
-                }
-            }
+           
+            await CreateTemplate(new TemplateModel{Name = "pictures", DefaultPrompt="Generate picture"});
+            await CreateTemplate(new TemplateModel{Name = "zoompictures", DefaultPrompt="Generate zoom picture"});
+            await CreateTemplate(new TemplateModel{Name = "backgrounds", DefaultPrompt="Generate background"});
+            await CreateTemplate(new TemplateModel{Name = "avatars", DefaultPrompt="Generate avatar"});
+                
         }
 
         public async Task<TemplateModel?> GetTemplateByName(string name)
