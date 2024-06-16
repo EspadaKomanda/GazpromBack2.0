@@ -5,13 +5,13 @@ EXPOSE 5072
 ENV ASPNETCORE_URLS=http://+:5072
 
 USER app
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG configuration=Release
 WORKDIR /src
-COPY ["ImageAgregationService/ImageAgregationService/ImageAgregationService.csproj", "ImageAgregationService/ImageAgregationService/"]
-RUN dotnet restore "ImageAgregationService/ImageAgregationService/ImageAgregationService.csproj"
+COPY ["ImageAgregationService.csproj", "./"]
+RUN dotnet restore "ImageAgregationService.csproj"
 COPY . .
-WORKDIR "/src/ImageAgregationService/ImageAgregationService"
+WORKDIR "/src/."
 RUN dotnet build "ImageAgregationService.csproj" -c $configuration -o /app/build
 
 FROM build AS publish
