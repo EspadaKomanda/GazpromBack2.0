@@ -68,7 +68,8 @@ public class KafkaService
                     EnableAutoCommit = true,
                     AutoCommitIntervalMs = 10,
                     EnableAutoOffsetStore = true,
-                    AutoOffsetReset = AutoOffsetReset.Latest
+                    AutoOffsetReset = AutoOffsetReset.Earliest
+
                 }
             ).Build();
             localConsumer.Subscribe(topicName);

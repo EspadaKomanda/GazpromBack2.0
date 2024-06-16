@@ -84,7 +84,8 @@ public class KafkaService
                     
                     // Convert the bytes to a string
                     var methodString = Encoding.UTF8.GetString(headerBytes.GetValueBytes());
-                        
+                    
+                    Thread.Sleep(5000);
                     switch (methodString)
                     {
                         case "generateImage":
