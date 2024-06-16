@@ -7,6 +7,7 @@
 #python -m pip install -U peft grpc
 #python -m pip install -U peft pillow
 #Для подключения логирования, необходимо в appsettings изменить настройки логирования в appsettings.json OpenSearchConfiguration
+#Текст промта для генерации должен быть на английском языке
 services:
   image-agregation-service:
     build: ImageAgregationService
