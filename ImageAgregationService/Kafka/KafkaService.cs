@@ -100,6 +100,7 @@ public class KafkaService
                                     new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")) 
                                 ]}))
                                 {
+                                    Thread.Sleep(1000);
                                     _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
                                     _consumer.Commit(result);
                                 }

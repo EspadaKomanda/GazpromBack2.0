@@ -73,7 +73,8 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         },
                         Template = new TemplateDto()
                         {
-                            Name = imageModel.Template.Name
+                            Name = imageModel.Template.Name,
+                            DefaultPrompt = imageModel.Template.DefaultPrompt
                         }
                     };
                     await _cache.SetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text, JsonConvert.SerializeObject(filalImage));
