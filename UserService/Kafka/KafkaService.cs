@@ -84,9 +84,11 @@ public class KafkaService
                     
                     // Convert the bytes to a string
                     var methodString = Encoding.UTF8.GetString(headerBytes.GetValueBytes());
-                        
+                    
+                    Thread.Sleep(5000);
                     switch (methodString)
                     {
+                        
                         case "finishRegistration":
 
                             try
@@ -374,7 +376,7 @@ public class KafkaService
 
                             try
                             {
-                                Thread.Sleep(3000);
+                                Thread.Sleep(5000);
                                 var user = await _userService.GetUserByUsername(result.Message.Value);
                                 if(await Produce(_userResponseTopic,new Message<string, string>(){ 
                                     Key = result.Message.Key,
