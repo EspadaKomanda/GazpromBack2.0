@@ -86,6 +86,40 @@ public class KafkaService
                     var methodString = Encoding.UTF8.GetString(headerBytes.GetValueBytes());
                     switch (methodString)
                     {
+                        case "getLikedImages":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(await _imageAgregationService.GetLikedImages()),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getLikedImages")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting liked images"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getLikedImages")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
+                                        new Header("error", Encoding.UTF8.GetBytes("Error getting liked images"))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }    
+                            break;
                         case "generateImage":
                             try
                             {

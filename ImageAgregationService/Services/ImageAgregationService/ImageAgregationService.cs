@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Net;
 using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Exceptions.S3ServiceExceptions;
 using ImageAgregationService.Exceptions.TemplateExceptions;
@@ -29,7 +31,52 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly ImageGenerationCommunicator _imageGenerationCommunicator = imageGenerationCommunicator;
         private readonly ImageProcessorCommunicator _imageProcessorCommunicator = imageProcessorCommunicator;
         private readonly IDistributedCache _cache = cache;
+        public async Task<string> GetLikedImages()
+        {
+            var images = _imageRepository.GetImages();
+            List<Guid> imageIds = images.Where(x => x.Mark.Name == "liked").Select(x => x.Id).ToList();
+            List<string> imageUrl = GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
+            var archive = await CreateArchieve(imageUrl);
+            await _s3Service.UploadArchieveToS3Bucket(archive);
 
+            return JsonConvert.SerializeObject(await _s3Service.GetArchieveFromS3Bucket());
+        }
+        private async Task<ArchieveModel> CreateArchieve(List<string> fileUrls)
+        {
+            try
+            {
+                MemoryStream memoryStream = new MemoryStream();
+
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        foreach (string fileUrl in fileUrls)
+                        {
+                            string fileName = Path.GetFileName(fileUrl);
+                            byte[] fileData = await httpClient.GetByteArrayAsync(fileUrl);
+
+                            using (var entryStream = archive.CreateEntry(fileName, CompressionLevel.Optimal).Open())
+                            {
+                                await entryStream.WriteAsync(fileData, 0, fileData.Length);
+                            }
+                        }
+                    }
+                    return new ArchieveModel
+                    {
+                        archieveData = memoryStream.ToArray(),
+                        archieveName="LikedImages",
+                        archieveType="application/zip"
+
+                    };
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new CreateArchieveException(ex.Message);
+            }
+        }
         public async Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest)
         {  
             try

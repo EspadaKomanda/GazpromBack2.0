@@ -57,6 +57,59 @@ namespace ImageAgregationService.Services
                 throw new ConfigureBucketsException("Failed to configure S3 buckets!", ex);
             }
         }
+        public async Task<string> GetArchieveFromS3Bucket()
+        {
+            try
+            {
+                var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = "archieves", Key = "LikedImages", Expires = DateTime.Now.AddMinutes(10), Protocol = Protocol.HTTP});
+                _logger.LogInformation($"Archieve URL: {response}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get archieve from S3 bucket!");
+                throw new GetImageException("Failed to get archieve from S3 bucket!", ex);
+            }
+        }
+        public async Task<bool> UploadArchieveToS3Bucket(ArchieveModel archieveModel)
+        {
+            try
+            {
+                Console.WriteLine(archieveModel.archieveData.Length);
+                DeleteObjectResponse deleteObjectResponse = await _s3Client.DeleteObjectAsync("archieves", archieveModel.archieveName);
+                
+                PutObjectResponse response = await _s3Client.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = "archieves",
+                    Key = archieveModel.archieveName,
+                    InputStream = new MemoryStream(archieveModel.archieveData),
+                    ContentType = archieveModel.archieveType
+                });
+
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    _logger.LogInformation($"Archieve {archieveModel.archieveName} uploaded to S3 bucket!");
+                    return true;
+                }
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    _logger.LogError($"Failed to upload archieve {archieveModel.archieveName} to S3 bucket!");
+                    throw new UploadImageException("Failed to upload archieve to S3 bucket!");
+                }
+                if (response.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogError($"Bucket archieves not found!");
+                    throw new BucketNotFoundException("Bucket archieves not found!");
+                }
+                _logger.LogError($"Failed to upload archieve {archieveModel.archieveName} to S3 bucket!");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload archieve to S3 bucket!");
+                throw new UploadImageException("Failed to upload archieve to S3 bucket!", ex);
+            }
+        }
         private async Task<bool> CheckIfBucketExists(string bucketName)
         {
             return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
