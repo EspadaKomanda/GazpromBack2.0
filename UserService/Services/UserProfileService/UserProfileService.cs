@@ -44,7 +44,7 @@ public class UserProfileService(IUserProfileRepository userProfileRepo, IUserRep
         return userProfile;
     }
 
-    public async Task<bool> DeleteUserProfile(DeleteUserProfileRequest request)
+    public async Task<bool> DeleteUserProfile(DeleteUserProfileByUserIdRequest request)
     {
         var userProfile = await _userProfileRepo.GetUserProfileById(request.Id);
 

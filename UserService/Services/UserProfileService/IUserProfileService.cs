@@ -25,7 +25,7 @@ public interface IUserProfileService
     /// </summary>
     /// <param name="request">The user profile to delete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating success.</returns>
-    Task<bool> DeleteUserProfile(DeleteUserProfileRequest request);
+    Task<bool> DeleteUserProfile(DeleteUserProfileByUserIdRequest request);
 
     /// <summary>
     /// Gets a user profile from the database by its ID.
