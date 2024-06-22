@@ -99,15 +99,17 @@ if (app.Environment.IsDevelopment())
 }
 
 Thread thread = new(async () => {
-    var s3Service = app.Services.GetRequiredService<IS3Service>();
-    await s3Service.ConfigureBuckets();
     using var scope = app.Services.CreateScope();
     var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
     var ConfigReader = app.Services.GetRequiredService<ConfigReader>();
     List<string> buckets = await ConfigReader.GetBuckets();
     await templateRepository.GenerateTemplates(buckets);
+    
+    var s3Service = app.Services.GetRequiredService<IS3Service>();
+    await s3Service.ConfigureBuckets();
     var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
     await kafkaService.Consume();
+    
 });
 
 thread.Start();
