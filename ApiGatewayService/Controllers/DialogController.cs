@@ -20,6 +20,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("createDialog")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<Dialog>> CreateDialog([FromBody] CreateDialogRequest model)
     {
         if (!ModelState.IsValid)
@@ -49,6 +50,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getDialogs")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<List<Dialog>>> GetDialogMessages([FromQuery] GetDialogMessagesRequest model)
     {
         if (!ModelState.IsValid)
@@ -78,6 +80,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getDialogsByOwnerId")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<List<Dialog>>> GetDialogsByOwnerId([FromQuery] GetDialogsByIdRequest model)
     {
         if (!ModelState.IsValid)
@@ -107,6 +110,7 @@ public class DialogController(IDialogsService dialogService) : ControllerBase
     /// <response code="400">Неверные данные</response>
     [HttpDelete]
     [Route("deleteDialog")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteDialog([FromBody] DeleteDialogRequest model)
     {
         if (!ModelState.IsValid)

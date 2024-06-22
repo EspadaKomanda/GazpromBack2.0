@@ -6,8 +6,5 @@ namespace ApiGatewayService.Exceptions.MessageExceptions
         public GetMessageException() { }
         public GetMessageException(string message) : base(message) { }
         public GetMessageException(string message, System.Exception inner) : base(message, inner) { }
-        protected GetMessageException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }
