@@ -3,7 +3,6 @@ using ImageAgregationService.Models.RequestModels;
 using ApiGatewayService.Services.ImageAgregationService;
 using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Models.DTO;
-using ImageAgregationService.Models.RequestModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
