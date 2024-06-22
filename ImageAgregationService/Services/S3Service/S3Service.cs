@@ -233,7 +233,6 @@ namespace ImageAgregationService.Services
         {
             try
             {
-                Console.WriteLine(generateImageResponse.ImageBytes.ToByteArray().Length);
                 PutObjectResponse response = await _s3Client.PutObjectAsync(new PutObjectRequest
                 {
                     BucketName = template,
