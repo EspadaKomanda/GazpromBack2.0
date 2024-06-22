@@ -13,6 +13,7 @@ using ImageAgregationService.Services.MarkService;
 using ImageAgregationService.Services.TemplateService;
 using KafkaTestLib.Kafka;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
@@ -26,7 +27,30 @@ var builder = WebApplication.CreateBuilder(args);
 configureLogging();
 builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Сервис генерации изображений",
+    });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Аутентификация при помощи токена типа Access и Refresh.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        BearerFormat = "<type> <token>",
+        Type = SecuritySchemeType.ApiKey
+    });
+    var xmlFile = Path.Combine(AppContext.BaseDirectory, "TestAPI.xml");
+    if (File.Exists(xmlFile))
+    {
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+});
+
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
     new ProducerConfig()
     {
