@@ -74,9 +74,9 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
     x.UseNpgsql($"Server={Hostname}:{Port};Database={Name};Uid={Username};Pwd={Password};");
 });
 
-builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddSingleton<ImageGenerationCommunicator>();
 builder.Services.AddSingleton<ImageProcessorCommunicator>();
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddTransient<IS3Service, S3Service>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IMarkRepository, MarkRepository>();
