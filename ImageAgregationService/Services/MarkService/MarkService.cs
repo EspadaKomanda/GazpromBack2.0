@@ -5,6 +5,7 @@ using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels.Mark;
 using ImageAgregationService.Repository.ImageRepository;
 using ImageAgregationService.Repository.MarkRepository;
+using Newtonsoft.Json;
 
 namespace ImageAgregationService.Services.MarkService
 {
@@ -24,6 +25,7 @@ namespace ImageAgregationService.Services.MarkService
         {
             try
             {
+                _logger.LogInformation("Update mark: {Name}", JsonConvert.SerializeObject(updateMark));
                 ImageModel image = await _imageRepository.GetImageById(updateMark.ImageId);
                 if(image==null)
                 {
