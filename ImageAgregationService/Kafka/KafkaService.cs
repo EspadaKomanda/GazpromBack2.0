@@ -203,7 +203,7 @@ public class KafkaService
                                 if (await _templateService.AddTemplate(template))
                                 {
                                     if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
-                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template added"}),
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Successfully added template"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))

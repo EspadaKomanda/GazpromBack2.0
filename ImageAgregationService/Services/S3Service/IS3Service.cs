@@ -16,6 +16,5 @@ namespace ImageAgregationService.Services
         Task<bool> CheckIfBucketExists(string bucketName);
         Task<bool> DeleteBucket(string bucketName);
         Task<bool> CreateBucket(string bucketName);
-
     }
 }
