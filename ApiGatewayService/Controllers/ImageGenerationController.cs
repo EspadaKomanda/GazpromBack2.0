@@ -72,4 +72,22 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
             return StatusCode(500);
         }
     }
+    [HttpGet]
+    [Route("getLikedImages")]
+    public async Task<ActionResult<string>> GetLikedImages()
+    {
+        try
+        {
+            var result = await _imageAgregationSerivce.GetLikedImages();
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
 }
