@@ -28,7 +28,7 @@ namespace ImageAgregationService.Repository.ImageRepository
 
         public async Task<ImageModel?> GetImageById(Guid id)
         {
-            return await _db.Images.FindAsync(id);
+            return _db.Images.Include(x=>x.Mark).First(x=>x.Id == id);
         }
 
         public IQueryable<ImageModel> GetImages()

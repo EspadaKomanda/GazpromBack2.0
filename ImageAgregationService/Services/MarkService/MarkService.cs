@@ -32,7 +32,7 @@ namespace ImageAgregationService.Services.MarkService
                     _logger.LogError("Image not found!");
                     throw new ImageNotFoundException("Image not found!");
                 }
-                image.Mark = new MarkModel(){Name = updateMark.MarkDto.Name};
+                image.Mark.Name = updateMark.MarkDto.Name;
                 await _markRepository.UpdateMark(image.Mark);
                 return new MarkDto(){
                     Name = image.Mark.Name
