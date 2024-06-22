@@ -16,8 +16,8 @@ namespace ImageAgregationService.Services
     {
         private readonly IAmazonS3 _s3Client;
         private readonly ILogger<S3Service> _logger;
-        private readonly TemplateRepository _templateRepository;
-        public S3Service(IAmazonS3 s3Client, ILogger<S3Service> logger, ConfigReader configReader, TemplateRepository templateRepository)
+        private readonly ITemplateRepository _templateRepository;
+        public S3Service(IAmazonS3 s3Client, ILogger<S3Service> logger, ConfigReader configReader, ITemplateRepository templateRepository)
         {
             _s3Client = s3Client;
             _logger = logger;
