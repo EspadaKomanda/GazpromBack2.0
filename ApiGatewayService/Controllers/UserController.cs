@@ -29,6 +29,12 @@ public class UserController(IUserService userService) : ControllerBase
         try
         {
             var result = await _userService.GetUserByUsername(username);
+
+            if (result == null)
+            {
+                return NotFound("User not found");
+            }
+
             var model = new UserModel
             {
                 Id = result.Id,
