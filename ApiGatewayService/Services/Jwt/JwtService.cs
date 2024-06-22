@@ -67,6 +67,7 @@ public class JwtService : IJwtService
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
             {
+                _logger.LogWarning("JwtService: Wrong token type");
                 return new (false, "");
             }
 
