@@ -58,8 +58,9 @@ public class JwtService : IJwtService
     
             // Валидация токена
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+            
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
-
+            _logger.LogInformation(validatedJwt.Claims.Count().ToString());
             var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
 
             // Проверка типа токена
