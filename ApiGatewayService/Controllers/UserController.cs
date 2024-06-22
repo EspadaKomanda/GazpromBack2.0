@@ -20,7 +20,7 @@ public class UserController(IUserService userService) : ControllerBase
     /// <response code="404">Пользователь не найден</response>
     [HttpGet]
     [Route("getUserByUsername")]
-    [Authorize(Policy = "Access")]
+    //[Authorize(Policy = "Access")]
     public async Task<ActionResult<UserModel>> GetUserByUsername([FromQuery] string username)
     {
         if (!ModelState.IsValid)
