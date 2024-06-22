@@ -21,19 +21,19 @@ namespace ImageAgregationService.Repository
 
         public async Task GenerateTemplates(List<string> templates)
         {
-            if(await _db.Templates.AnyAsync(x=>x.Name == "pictures"))
+            if(!await _db.Templates.AnyAsync(x=>x.Name == "pictures"))
             {
                 await CreateTemplate(new TemplateModel{Name = "pictures", DefaultPrompt="Generate picture"});
             }
-            if(await _db.Templates.AnyAsync(x=>x.Name == "zoompictures"))
+            if(!await _db.Templates.AnyAsync(x=>x.Name == "zoompictures"))
             {
                 await CreateTemplate(new TemplateModel{Name = "zoompictures", DefaultPrompt="Generate zoom picture"});
             }
-            if(await _db.Templates.AnyAsync(x=>x.Name == "backgrounds"))
+            if(!await _db.Templates.AnyAsync(x=>x.Name == "backgrounds"))
             {
                 await CreateTemplate(new TemplateModel{Name = "backgrounds", DefaultPrompt="Generate background"});
             }
-            if(await _db.Templates.AnyAsync(x=>x.Name == "avatars"))
+            if(!await _db.Templates.AnyAsync(x=>x.Name == "avatars"))
             {
                 await CreateTemplate(new TemplateModel{Name = "avatars", DefaultPrompt="Generate avatar"});
             }
