@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Security.Claims;
-using AuthService.Authentication;
 using AuthService.Services.Jwt;
 using AuthService.Services.Account;
 using Microsoft.AspNetCore.Authentication;
@@ -52,30 +51,12 @@ builder.Services.AddSingleton(new AdminClientBuilder(
     }
 ).Build());
 builder.Services.AddScoped<KafkaService>();
-// Authorization
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Access", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Access");
-    })
-    .AddPolicy("Refresh", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
-    });
-    
-builder.Services.AddAuthentication("default")
-.AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
-{
-    Console.WriteLine(options.ToString());
-});
 
 builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseAuthentication();
 app.UseRouting();
-app.UseAuthorization();
 Thread thread = new(async () => {
    
     using var scope = app.Services.CreateScope();

@@ -8,11 +8,12 @@ namespace AuthService.Authentication;
 
 public class JwtAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
+    ILoggerFactory loggerFactory,
     UrlEncoder encoder,
-    IJwtService jwtService) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    IJwtService jwtService, ILogger<JwtAuthenticationHandler> logger) : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private readonly IJwtService _jwtService = jwtService;
+    private readonly ILogger<JwtAuthenticationHandler> _logger = logger;
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -23,6 +24,7 @@ public class JwtAuthenticationHandler(
 
             if (token == null)
             {
+                _logger.LogWarning("Auth: no authorization header.");
                 return AuthenticateResult.Fail("No token provided.");
             }
     
@@ -38,7 +40,6 @@ public class JwtAuthenticationHandler(
                     var claims = new[] 
                     {
                         new Claim(ClaimTypes.Name, validationResult.Item2!),
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Access")
                     };
@@ -48,6 +49,7 @@ public class JwtAuthenticationHandler(
     
                     return AuthenticateResult.Success(ticket);
                 }
+                _logger.LogWarning("Auth: token didn't pass validation in AuthService");
             }
             else if (token.StartsWith("Refresh "))
             {
@@ -60,7 +62,6 @@ public class JwtAuthenticationHandler(
                     var claims = new[] 
                     {
                         new Claim(ClaimTypes.Name, validationResult.Item2!),
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Refresh")
                     };
@@ -70,12 +71,14 @@ public class JwtAuthenticationHandler(
     
                     return AuthenticateResult.Success(ticket);
                 }
+                _logger.LogWarning("Auth: token didn't pass validation in AuthService");
             }
     
             return AuthenticateResult.Fail("Invalid token");
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("Auth: token was invalidated due to error in API Gateway:\n{Error}", e);
             return AuthenticateResult.Fail("Invalid token");
         }
     }

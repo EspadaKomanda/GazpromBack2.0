@@ -5,7 +5,6 @@ using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ApiGatewayService.Controllers;
 

@@ -4,6 +4,7 @@ using AuthService.Database.Models;
 using AuthService.Models.Account.Requests;
 using AuthService.Services.Account;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace AuthService.Services.Jwt;
 
@@ -58,20 +59,23 @@ public class JwtService : IJwtService
     
             // Валидация токена
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+            
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
-
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            _logger.LogInformation(JsonConvert.SerializeObject(validatedJwt));
+            var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
-            if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
+            if (validatedJwt.Claims.First(claim => claim.Type == "authmethod").Value != "Access")
             {
+                _logger.LogWarning("JwtService: Wrong token type");
                 return new (false, "");
             }
 
             return new (true, username);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("Auth: token didn't pass validation in JwtService of API Gateway due to exception:\n{Error}", e);
             return new (false, "");;
         }  
     }
@@ -88,6 +92,14 @@ public class JwtService : IJwtService
         {
             return new (false, "");
         }
-        return await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
+        var result = await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
+
+        if (!result.Item1)
+        {
+            _logger.LogWarning("Auth: token didn't pass validation in JwtService of API Gateway");
+            return new (false, "");
+        }
+
+        return result;
     }
 }
