@@ -52,22 +52,6 @@ builder.Services.AddSingleton(new AdminClientBuilder(
     }
 ).Build());
 builder.Services.AddScoped<KafkaService>();
-// Authorization
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Access", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Access");
-    })
-    .AddPolicy("Refresh", policy =>
-    {
-        policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
-    });
-    
-builder.Services.AddAuthentication("default")
-.AddScheme<AuthenticationSchemeOptions, JwtAuthenticationHandler>("default", options => 
-{
-    Console.WriteLine(options.ToString());
-});
 
 builder.Host.UseSerilog();
 
