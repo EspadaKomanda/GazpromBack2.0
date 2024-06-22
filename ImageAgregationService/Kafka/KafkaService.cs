@@ -239,7 +239,7 @@ public class KafkaService
                                 if(await _templateService.DeleteTemplate(template))
                                 {
                                     if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
-                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Template deleted"}),
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Successfully deleted template"}),
                                     Headers = [
                                         new Header("method", Encoding.UTF8.GetBytes("deleteTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))]}))
