@@ -57,6 +57,24 @@ namespace ImageAgregationService.Services
                 throw new ConfigureBucketsException("Failed to configure S3 buckets!", ex);
             }
         }
+        public async Task<bool> CreateBucket(string bucketName)
+        {
+            try
+            {
+                if(!await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client,bucketName))
+                {
+                    await _s3Client.PutBucketAsync(bucketName);
+                    return true;
+                }   
+                _logger.LogInformation($"Bucket {bucketName} already exists!");
+                throw new BucketAlreadyExistsException($"Bucket {bucketName} already exists!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create bucket!");
+                throw new ConfigureBucketsException("Failed to create bucket!", ex);
+            }
+        }
         public async Task<string> GetArchieveFromS3Bucket()
         {
             try
@@ -110,7 +128,7 @@ namespace ImageAgregationService.Services
                 throw new UploadImageException("Failed to upload archieve to S3 bucket!", ex);
             }
         }
-        private async Task<bool> CheckIfBucketExists(string bucketName)
+        public async Task<bool> CheckIfBucketExists(string bucketName)
         {
             return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
         }

@@ -244,9 +244,9 @@ public class KafkaService
                                         new Header("method", Encoding.UTF8.GetBytes("deleteTemplate")),
                                         new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))]}))
                                     {
-
+                                         _consumer.Commit(result);
                                     }
-                                    _consumer.Commit(result);
+                                   
                                 }
                             }
                             catch (Exception e)

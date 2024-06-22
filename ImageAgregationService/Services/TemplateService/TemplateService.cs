@@ -20,6 +20,22 @@ namespace ImageAgregationService.Services.TemplateService
         {
             try
             {
+                if (await _templateRepository.GetTemplateByName(templateDto.Name) != null)
+                {
+                    _logger.LogError("Template already exists!");
+                    throw new AddTemplateException("Template already exists!");
+                }
+                if(await _s3Service.CheckIfBucketExists(templateDto.Name))
+                {
+                    _logger.LogError("Bucket already exists!");
+                    throw new AddTemplateException("Bucket already exists!");
+                }
+                if(!await _s3Service.CreateBucket(templateDto.Name))
+                {
+                    _logger.LogError("Failed to create bucket!");
+                    throw new AddTemplateException("Failed to create bucket!");
+                }
+
                 return await _templateRepository.CreateTemplate(new TemplateModel
                 {
                     Name = templateDto.Name,
@@ -56,6 +72,7 @@ namespace ImageAgregationService.Services.TemplateService
                         await _s3Service.DeleteImageFromS3Bucket(image.Name, template.Name);
                     }
                     await _imageRepository.DeleteImagesByTemplate(template.Guid);
+                    await _s3Service.DeleteBucket(template.Name);
                     return true;
                 }
 
