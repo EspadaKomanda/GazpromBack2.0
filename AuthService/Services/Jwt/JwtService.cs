@@ -43,7 +43,7 @@ public class JwtService : IJwtService
             Audience = _audience,
             Subject = new ClaimsIdentity(new[]
             { 
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),
+                new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                 new Claim(ClaimTypes.AuthenticationMethod, "Access")
             }),
@@ -70,7 +70,7 @@ public class JwtService : IJwtService
             Subject = new ClaimsIdentity(new[] 
             {
                 new Claim("PasswordChangeDate", user.PasswordChangeDate.ToString()),
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),
+                new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                 new Claim(ClaimTypes.AuthenticationMethod, "Refresh")
             }),
@@ -113,7 +113,7 @@ public class JwtService : IJwtService
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.Name).Value;
 
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
@@ -164,7 +164,7 @@ public class JwtService : IJwtService
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
             var passwordChangeDate = validatedJwt.Claims.First(claim => claim.Type == "PasswordChangeDate").Value;
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.Name).Value;
 
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")

@@ -40,7 +40,6 @@ public class JwtAuthenticationHandler(
                     var claims = new[] 
                     {
                         new Claim(ClaimTypes.Name, validationResult.Item2!),
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Access")
                     };
@@ -63,7 +62,6 @@ public class JwtAuthenticationHandler(
                     var claims = new[] 
                     {
                         new Claim(ClaimTypes.Name, validationResult.Item2!),
-                        new Claim(ClaimsIdentity.DefaultNameClaimType, validationResult.Item2!),
                         new Claim(ClaimsIdentity.DefaultRoleClaimType,"User"),
                         new Claim(ClaimTypes.AuthenticationMethod, "Refresh")
                     };
