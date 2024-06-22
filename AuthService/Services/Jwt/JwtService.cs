@@ -93,6 +93,7 @@ public class JwtService : IJwtService
         {
             if (token == null)
             {
+                _logger.LogWarning("JwtService: No access token string provided");
                 return new (false, "");
             }
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -117,13 +118,15 @@ public class JwtService : IJwtService
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
             {
+                _logger.LogWarning("JwtService: the token was not a access token");
                 return new (false, "");
             }
 
             return new (true, username);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("JwtService: Token invalidated due to exception:\n{Exception}", e);
             return new (false, "");;
         }  
     }
@@ -140,6 +143,7 @@ public class JwtService : IJwtService
         {
             if (token == null)
             {
+                _logger.LogWarning("JwtService: No refresh token string provided");
                 return new (false, "");;
             }
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -161,9 +165,11 @@ public class JwtService : IJwtService
 
             var passwordChangeDate = validatedJwt.Claims.First(claim => claim.Type == "PasswordChangeDate").Value;
             var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")
             {
+                _logger.LogWarning("JwtService: the token was not a refresh token");
                 return new (false, "");
             }
 
@@ -177,13 +183,15 @@ public class JwtService : IJwtService
             if (user.PasswordChangeDate.ToString() != passwordChangeDate)
             {
                 username=null;
+                _logger.LogWarning("JwtService: the password change date was not equal to the one in the token\n1. {1}\n2. {2}", passwordChangeDate, user.PasswordChangeDate.ToString());
                 return new (false, "");
             }
 
             return new (true, username);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("JwtService: Token invalidated due to exception:\n{Exception}", e);
             return new (false, "");
         }
     }

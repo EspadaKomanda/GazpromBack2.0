@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Security.Claims;
-using AuthService.Authentication;
 using AuthService.Services.Jwt;
 using AuthService.Services.Account;
 using Microsoft.AspNetCore.Authentication;
@@ -57,9 +56,7 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseAuthentication();
 app.UseRouting();
-app.UseAuthorization();
 Thread thread = new(async () => {
    
     using var scope = app.Services.CreateScope();
