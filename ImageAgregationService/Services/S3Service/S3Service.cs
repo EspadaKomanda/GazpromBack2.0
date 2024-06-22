@@ -5,6 +5,7 @@ using ImageAgregationService.Exceptions.ConfigExceptions;
 using ImageAgregationService.Exceptions.S3ServiceExceptions;
 using ImageAgregationService.Models;
 using ImageAgregationService.Models.DTO;
+using ImageAgregationService.Repository;
 using ImageAgregationService.Singletones;
 using Imagegenerator;
 using ImageProcessor;
@@ -15,30 +16,29 @@ namespace ImageAgregationService.Services
     {
         private readonly IAmazonS3 _s3Client;
         private readonly ILogger<S3Service> _logger;
-        private readonly ConfigReader _configReader;
-        public S3Service(IAmazonS3 s3Client, ILogger<S3Service> logger, ConfigReader configReader)
+        private readonly TemplateRepository _templateRepository;
+        public S3Service(IAmazonS3 s3Client, ILogger<S3Service> logger, ConfigReader configReader, TemplateRepository templateRepository)
         {
             _s3Client = s3Client;
             _logger = logger;
-            _configReader = configReader;
-            
+            _templateRepository = templateRepository;
         }
         public async Task ConfigureBuckets()
         {
             try
             {
-                List<string> bucketNames = await _configReader.GetBuckets();
-                foreach (var bucketName in bucketNames)
+                var buckets =  _templateRepository.GetTemplates();
+                foreach (var bucket in buckets)
                 {
-                    if(!await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client,bucketName))
+                    if(!await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client,bucket.Guid.ToString()))
                     {
-                        await _s3Client.PutBucketAsync(bucketName);
+                        await _s3Client.PutBucketAsync(bucket.Guid.ToString());
                     }   
                 }
                 
-                foreach(var bucketName in bucketNames)
+                foreach(var bucket in buckets)
                 {
-                    if(!await CheckIfBucketExists(bucketName))
+                    if(!await CheckIfBucketExists(bucket.Guid.ToString()))
                     {
                         _logger.LogError("Failed to configure S3 buckets, storage unavailable!");
                         throw new StorageUnavailibleException("Failed to configure S3 buckets, storage unavailable!");

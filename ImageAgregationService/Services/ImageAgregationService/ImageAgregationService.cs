@@ -92,7 +92,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     _logger.LogInformation("Error {Error}", finalImage.Error);
                     string imageName = Guid.NewGuid().ToString();
                     _logger.LogInformation(finalImage.ImageBytes.ToByteArray().Length.ToString());
-                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, generateImageRequest.TemplateName, imageName))
+                    if(!await _s3Service.UploadImageToS3Bucket(finalImage, _templateRepository.GetTemplateByName(generateImageRequest.TemplateName).Result.Guid.ToString(), imageName))
                     {  
                         _logger.LogError("Error uploading image");
                         throw new UploadImageException("Error uploading image");

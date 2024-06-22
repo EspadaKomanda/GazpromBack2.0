@@ -30,7 +30,8 @@ namespace ImageAgregationService.Services.TemplateService
                     _logger.LogError("Bucket already exists!");
                     throw new AddTemplateException("Bucket already exists!");
                 }
-                if(!await _s3Service.CreateBucket(templateDto.Name))
+                Guid guid= Guid.NewGuid();
+                if(!await _s3Service.CreateBucket(guid.ToString()))
                 {
                     _logger.LogError("Failed to create bucket!");
                     throw new AddTemplateException("Failed to create bucket!");
@@ -38,6 +39,7 @@ namespace ImageAgregationService.Services.TemplateService
 
                 return await _templateRepository.CreateTemplate(new TemplateModel
                 {
+                    Guid = guid,
                     Name = templateDto.Name,
                     DefaultPrompt = templateDto.DefaultPrompt
                 });
