@@ -50,7 +50,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// <response code="200">Получены токены</response>
     /// <response code="401">Неверный refresh токен</response>
     [HttpGet]
-    //[Route("refreshToken")]
+    [Route("refreshToken")]
     public async Task<ActionResult<AccountTokensResponse>> RefreshToken([FromQuery] AccountRefreshTokenRequest model)
     {
         if (!ModelState.IsValid)

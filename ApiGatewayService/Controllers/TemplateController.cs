@@ -20,7 +20,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getTemplates")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<List<TemplateDto>>> GetTemplates()
     {
         if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("addTemplate")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<bool>> AddTemplate([FromBody] TemplateDto model)
     {
         if (!ModelState.IsValid)
@@ -80,7 +80,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <response code="400">Неверные данные</response>
     [HttpDelete]
     [Route("deleteTemplate")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<bool>> DeleteTemplate([FromBody] DeleteTemplateKafkaRequest model)
     {
         if (!ModelState.IsValid)
@@ -110,7 +110,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     /// <response code="400">Неверные данные</response>
     [HttpPatch]
     [Route("updateTemplate")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<bool>> UpdateTemplate([FromBody] UpdateTemplateKafkaRequest model)
     {
         if (!ModelState.IsValid)

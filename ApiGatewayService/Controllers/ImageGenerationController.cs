@@ -5,7 +5,6 @@ using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ApiGatewayService.Controllers;
 
@@ -22,7 +21,7 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
     /// <response code="400">Неверные данные</response>
     [HttpPost]
     [Route("generateImage")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<ImageDto>> GenerateImage([FromBody] GenerateImageKafkaRequest model)
     {
         if (!ModelState.IsValid)
@@ -52,7 +51,7 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
     /// <response code="400">Неверные данные</response>
     [HttpGet]
     [Route("getImages")]
-    //[Authorize(Policy = "Access")]
+    [Authorize(Policy = "Access")]
     public async Task<ActionResult<List<ImageDto>>> GetImages([FromQuery] GetImagesKafkaRequest model)
     {
         if (!ModelState.IsValid)
