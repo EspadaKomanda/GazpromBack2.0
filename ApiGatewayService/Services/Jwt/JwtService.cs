@@ -65,7 +65,7 @@ public class JwtService : IJwtService
             var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
-            if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
+            if (validatedJwt.Claims.First(claim => claim.Type == "authmethod").Value != "Access")
             {
                 _logger.LogWarning("JwtService: Wrong token type");
                 return new (false, "");

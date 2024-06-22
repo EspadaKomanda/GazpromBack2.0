@@ -169,7 +169,7 @@ public class JwtService : IJwtService
             var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
-            if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")
+            if (validatedJwt.Claims.First(claim => claim.Type == "authmethod").Value != "Refresh")
             {
                 _logger.LogWarning("JwtService: the token was not a refresh token");
                 return new (false, "");
