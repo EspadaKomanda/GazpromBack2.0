@@ -37,6 +37,8 @@ public class JwtService : IJwtService
     {  
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(_secretKey);
+      
+      
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Issuer = _issuer,
@@ -113,7 +115,7 @@ public class JwtService : IJwtService
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.Name).Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
@@ -164,7 +166,7 @@ public class JwtService : IJwtService
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
 
             var passwordChangeDate = validatedJwt.Claims.First(claim => claim.Type == "PasswordChangeDate").Value;
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.Name).Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Refresh")

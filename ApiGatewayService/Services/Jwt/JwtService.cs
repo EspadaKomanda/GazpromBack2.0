@@ -62,7 +62,7 @@ public class JwtService : IJwtService
             
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
             _logger.LogInformation(JsonConvert.SerializeObject(validatedJwt));
-            var username = validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.Name).Value;
+            var username = validatedJwt.Claims.First(claim => claim.Type == "unique_name").Value;
 
             // Проверка типа токена
             if (validatedJwt.Claims.First(claim => claim.Type == ClaimTypes.AuthenticationMethod).Value != "Access")
