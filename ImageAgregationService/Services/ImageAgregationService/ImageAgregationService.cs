@@ -97,7 +97,8 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         _logger.LogError("Error uploading image");
                         throw new UploadImageException("Error uploading image");
                     }
-                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(imageName,generateImageRequest.TemplateName);
+                    Thread.Sleep(1000);
+                    ImageModel imageModel = await _s3Service.GetImageFromS3Bucket(imageName,_templateRepository.GetTemplateByName(generateImageRequest.TemplateName).Result.Guid.ToString());
                     var currentTemplate = await _templateRepository.GetTemplateByName(generateImageRequest.TemplateName);
                     if(currentTemplate==null)
                     {
