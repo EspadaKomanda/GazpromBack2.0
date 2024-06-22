@@ -137,6 +137,7 @@ namespace ImageAgregationService.Services
             try
             {
                 DeleteBucketResponse response = await _s3Client.DeleteBucketAsync(bucketName);
+                _logger.LogInformation(response.HttpStatusCode.ToString()+ response.ResponseMetadata.ToString());
                 if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
                     _logger.LogInformation($"Bucket {bucketName} deleted!");
