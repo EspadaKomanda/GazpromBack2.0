@@ -73,10 +73,11 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
     var Password=Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
     x.UseNpgsql($"Server={Hostname}:{Port};Database={Name};Uid={Username};Pwd={Password};");
 });
+
 builder.Services.AddSingleton<ImageGenerationCommunicator>();
 builder.Services.AddSingleton<ImageProcessorCommunicator>();
-builder.Services.AddTransient<IS3Service, S3Service>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddTransient<IS3Service, S3Service>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IMarkRepository, MarkRepository>();
 builder.Services.AddTransient<IImageAgregationService, ImageAgregationService.Services.ImageAgregationService.ImageAgregationService>();
@@ -98,15 +99,17 @@ if (app.Environment.IsDevelopment())
 }
 
 Thread thread = new(async () => {
-    var s3Service = app.Services.GetRequiredService<IS3Service>();
-    await s3Service.ConfigureBuckets();
     using var scope = app.Services.CreateScope();
     var templateRepository = scope.ServiceProvider.GetRequiredService<ITemplateRepository>();
     var ConfigReader = app.Services.GetRequiredService<ConfigReader>();
     List<string> buckets = await ConfigReader.GetBuckets();
     await templateRepository.GenerateTemplates(buckets);
+    
+    var s3Service = app.Services.GetRequiredService<IS3Service>();
+    await s3Service.ConfigureBuckets();
     var kafkaService = scope.ServiceProvider.GetRequiredService<KafkaService>();
     await kafkaService.Consume();
+    
 });
 
 thread.Start();

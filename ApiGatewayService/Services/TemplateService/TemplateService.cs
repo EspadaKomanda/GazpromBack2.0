@@ -98,7 +98,7 @@ namespace ImageAgregationService.Services.TemplateService
             }
         }
 
-        public async Task<List<TemplateDto>> GetTemplates(GetTemplateKafkaRequest getTemplateRequest)
+        public async Task<List<TemplateDto>> GetTemplates()
         {
             try
             {
@@ -106,7 +106,7 @@ namespace ImageAgregationService.Services.TemplateService
                 if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
                     Key = messageId.ToString(),
-                    Value = JsonConvert.SerializeObject(getTemplateRequest),
+                    Value = "",
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("getTemplates")),
                         new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
@@ -114,18 +114,18 @@ namespace ImageAgregationService.Services.TemplateService
                 }))
                 {
                     var templateDto = await _kafkaService.Consume<List<TemplateDto>>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", messageId, "getTemplates");
-                    _logger.LogInformation("Templates fetched successfully, Templates: {Templates}", JsonConvert.SerializeObject(getTemplateRequest));
+                    _logger.LogInformation("Templates fetched successfully, Templates: {Templates}", JsonConvert.SerializeObject(templateDto));
                     return templateDto;
                 }
-                _logger.LogError("Error fetching templates, Templates: {Templates}", JsonConvert.SerializeObject(getTemplateRequest));
-                throw new TemplateNotFoundException("Error fetching Templates, Templates: "+JsonConvert.SerializeObject(getTemplateRequest));
+                _logger.LogError("Error fetching templates");
+                throw new TemplateNotFoundException("Error fetching Templates");
             }
             catch (Exception e)
             {
                 if (e is not MyKafkaException)
                 {
-                    _logger.LogError(e,"Error fetching templates, Templates: {Templates}", JsonConvert.SerializeObject(getTemplateRequest));
-                    throw new TemplateNotFoundException("Error fetching Templates, Templates: "+JsonConvert.SerializeObject(getTemplateRequest),e);
+                    _logger.LogError(e,"Error fetching templates");
+                    throw new TemplateNotFoundException("Error fetching Templates",e);
                 }
                 _logger.LogError(e,"Unhandled error");
                 throw;

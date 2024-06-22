@@ -3,6 +3,7 @@ using ImageAgregationService.Models.RequestModels;
 using ApiGatewayService.Services.ImageAgregationService;
 using ImageAgregationService.Exceptions.GenerateImageExceptions;
 using ImageAgregationService.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -62,6 +63,24 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
         try
         {
             var result = await _imageAgregationSerivce.GetImageDto(model);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
+    [HttpGet]
+    [Route("getLikedImages")]
+    public async Task<ActionResult<string>> GetLikedImages()
+    {
+        try
+        {
+            var result = await _imageAgregationSerivce.GetLikedImages();
             return Ok(result);
         }
         catch (Exception e)

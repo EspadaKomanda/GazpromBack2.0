@@ -21,7 +21,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
     [HttpGet]
     [Route("getTemplates")]
     [Authorize(Policy = "Access")]
-    public async Task<ActionResult<List<TemplateDto>>> GetTemplates([FromQuery] GetTemplateKafkaRequest model)
+    public async Task<ActionResult<List<TemplateDto>>> GetTemplates()
     {
         if (!ModelState.IsValid)
         {
@@ -30,7 +30,7 @@ public class TemplateController(ITemplateService templateService) : ControllerBa
 
         try
         {
-            var result = await _templateService.GetTemplates(model);
+            var result = await _templateService.GetTemplates();
             return Ok(result);
         }
         catch (Exception e)

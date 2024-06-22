@@ -18,6 +18,40 @@ namespace ApiGatewayService.Services.ImageAgregationService
             _logger = logger;
             _kafkaService = kafkaService;
         }
+        public async Task<string> GetLikedImages()
+        {
+            try
+            {
+                Guid currentId = Guid.NewGuid();
+                if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
+                new Confluent.Kafka.Message<string, string>(){ 
+                    Key =currentId.ToString(),
+                    Value = "",
+                    Headers = new Headers(){
+                        new Header("method",Encoding.UTF8.GetBytes("getLikedImages")),
+                        new Header("sender",Encoding.UTF8.GetBytes("apiGatewayService"))
+                    }
+                }))
+                {
+                    var imageDto = await _kafkaService.Consume<string>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", currentId, "getLikedImages");
+                    _logger.LogInformation("Get liked images successfully");
+                    return imageDto;
+                }
+
+                _logger.LogError("Error getting liked images");
+                throw new GetImagesException("Error getting liked images");
+            }
+            catch (Exception ex)
+            {
+                if (ex is not MyKafkaException)
+                {
+                    _logger.LogError(ex,"Error getting liked images");
+                    throw new GetImagesException("Error getting liked images",ex);
+                }
+                _logger.LogError(ex,"Unhandled error");
+                throw;
+            }
+        }
         public async Task<ImageDto> GenerateImage(GenerateImageKafkaRequest generateImageKafkaRequest)
         {
             try
