@@ -9,7 +9,7 @@ public class SendMessageRequest
     [Required]
     public long OwnerId { get; set;}
     [Required]
-    public Sender Accessor { get; set;}
+    public Sender Accessor { get; set;} = Sender.User;
     [Required]
     public long DialogId { get; set; }
     public string? Text { get; set; }
