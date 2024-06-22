@@ -34,7 +34,7 @@ namespace ImageAgregationService.Services.MarkService
                     }
                 }))
                 {
-                    var markDto = await _kafkaService.Consume<MarkDto>( Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", messageId, "addMark");
+                    var markDto = await _kafkaService.Consume<MarkDto>( Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", messageId, "updateMark");
                     _logger.LogInformation("Mark updated successfully, Mark: {Mark}", JsonConvert.SerializeObject(updateMark));
                     return markDto;
                 }
