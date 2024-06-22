@@ -54,29 +54,8 @@ namespace ImageAgregationService.Services.TemplateService
             try
             {
                 var template = await _templateRepository.GetTemplateByName(deleteTemplateRequest.Name);
-                if (template == null)
-                {
-                    _logger.LogError("Template not found!");
-                    throw new TemplateNotFoundException("Template not found!");
-                }
-                var images = _imageRepository.GetImages().Where(x => x.TemplateId == template.Guid);
-                var marks = images.Select(x => x.Mark).ToList();
-                if(await _templateRepository.DeleteTemplate(template))
-                {
-                    foreach (var mark in marks)
-                    {
-                        await _markRepository.DeleteMark(mark);
-                    }
-                    foreach (var image in images)
-                    {
-                        await _s3Service.DeleteImageFromS3Bucket(image.Name, template.Name);
-                    }
-                    await _imageRepository.DeleteImagesByTemplate(template.Guid);
-                    await _s3Service.DeleteBucket(template.Name);
-                    return true;
-                }
-
-                throw new DeleteTemplateException("Failed to delete template!, template name: " + deleteTemplateRequest.Name);
+                template.Availible = false;
+                return await _templateRepository.UpdateTemplate(template);
             }
             catch (Exception ex)
             {
@@ -92,11 +71,14 @@ namespace ImageAgregationService.Services.TemplateService
                 List<TemplateDto> templateDtos = [];
                 foreach (var template in  _templateRepository.GetTemplates())
                 {
-                    templateDtos.Add(new TemplateDto
+                    if(template.Availible)
                     {
-                        Name = template.Name,
-                        DefaultPrompt = template.DefaultPrompt
-                    });
+                        templateDtos.Add(new TemplateDto
+                        {
+                            Name = template.Name,
+                            DefaultPrompt = template.DefaultPrompt
+                        });
+                    }
                 }
                 return templateDtos;
                 
