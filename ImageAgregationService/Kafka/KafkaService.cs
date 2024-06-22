@@ -259,7 +259,7 @@ public class KafkaService
                                 await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
                                         Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error deleting template"}),
                                         Headers = [
-                                            new Header("method", Encoding.UTF8.GetBytes("addTemplate")),
+                                            new Header("method", Encoding.UTF8.GetBytes("deleteTemplate")),
                                             new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
                                             new Header("error", Encoding.UTF8.GetBytes("Error deleting template"))
                                         ]});
