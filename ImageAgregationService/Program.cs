@@ -73,10 +73,11 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
     var Password=Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres";
     x.UseNpgsql($"Server={Hostname}:{Port};Database={Name};Uid={Username};Pwd={Password};");
 });
+
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddSingleton<ImageGenerationCommunicator>();
 builder.Services.AddSingleton<ImageProcessorCommunicator>();
 builder.Services.AddTransient<IS3Service, S3Service>();
-builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IMarkRepository, MarkRepository>();
 builder.Services.AddTransient<IImageAgregationService, ImageAgregationService.Services.ImageAgregationService.ImageAgregationService>();
