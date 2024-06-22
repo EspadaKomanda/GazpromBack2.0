@@ -8,12 +8,12 @@ namespace AuthService.Authentication;
 
 public class JwtAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
+    ILoggerFactory loggerFactory,
     UrlEncoder encoder,
-    IJwtService jwtService) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    IJwtService jwtService, ILogger<JwtAuthenticationHandler> logger) : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private readonly IJwtService _jwtService = jwtService;
-    private readonly ILogger<JwtAuthenticationHandler> _logger;
+    private readonly ILogger<JwtAuthenticationHandler> _logger = logger;
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
