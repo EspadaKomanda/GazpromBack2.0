@@ -4,6 +4,7 @@ using AuthService.Database.Models;
 using AuthService.Models.Account.Requests;
 using AuthService.Services.Account;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace AuthService.Services.Jwt;
 
@@ -60,7 +61,7 @@ public class JwtService : IJwtService
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             
             JwtSecurityToken validatedJwt = (JwtSecurityToken)validatedToken;
-            _logger.LogInformation(validatedJwt.Claims.Count().ToString());
+            _logger.LogInformation(JsonConvert.SerializeObject(validatedJwt));
             var username = validatedJwt.Claims.First(claim => claim.Type == ClaimsIdentity.DefaultNameClaimType).Value;
 
             // Проверка типа токена
