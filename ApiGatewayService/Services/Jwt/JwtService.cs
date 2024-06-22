@@ -70,8 +70,9 @@ public class JwtService : IJwtService
 
             return new (true, username);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("Auth: token didn't pass validation in JwtService of API Gateway due to exception:\n{Error}", e);
             return new (false, "");;
         }  
     }
@@ -88,6 +89,14 @@ public class JwtService : IJwtService
         {
             return new (false, "");
         }
-        return await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
+        var result = await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
+
+        if (!result.Item1)
+        {
+            _logger.LogWarning("Auth: token didn't pass validation in JwtService of API Gateway");
+            return new (false, "");
+        }
+
+        return result;
     }
 }

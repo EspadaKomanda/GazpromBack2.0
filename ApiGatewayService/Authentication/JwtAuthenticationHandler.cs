@@ -13,6 +13,7 @@ public class JwtAuthenticationHandler(
     IJwtService jwtService) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private readonly IJwtService _jwtService = jwtService;
+    private readonly ILogger<JwtAuthenticationHandler> _logger;
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -23,6 +24,7 @@ public class JwtAuthenticationHandler(
 
             if (token == null)
             {
+                _logger.LogWarning("Auth: no authorization header.");
                 return AuthenticateResult.Fail("No token provided.");
             }
     
@@ -48,6 +50,7 @@ public class JwtAuthenticationHandler(
     
                     return AuthenticateResult.Success(ticket);
                 }
+                _logger.LogWarning("Auth: token didn't pass validation in AuthService");
             }
             else if (token.StartsWith("Refresh "))
             {
@@ -70,12 +73,14 @@ public class JwtAuthenticationHandler(
     
                     return AuthenticateResult.Success(ticket);
                 }
+                _logger.LogWarning("Auth: token didn't pass validation in AuthService");
             }
     
             return AuthenticateResult.Fail("Invalid token");
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogWarning("Auth: token was invalidated due to error in API Gateway:\n{Error}", e);
             return AuthenticateResult.Fail("Invalid token");
         }
     }
