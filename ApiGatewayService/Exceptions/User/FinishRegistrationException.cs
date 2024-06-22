@@ -6,8 +6,5 @@ namespace ApiGatewayService.Exceptions.User
         public FinishRegistrationException() { }
         public FinishRegistrationException(string message) : base(message) { }
         public FinishRegistrationException(string message, System.Exception inner) : base(message, inner) { }
-        protected FinishRegistrationException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

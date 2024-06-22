@@ -9,7 +9,7 @@ public class DeleteMessageRequest
     [Required]
     public long OwnerId { get; set;}
     [Required]
-    public Sender Accessor { get; set;}
+    public Sender Accessor { get; set;} = Sender.User;
     [Required]
     public long MessageId { get; set; }
     [Required]
