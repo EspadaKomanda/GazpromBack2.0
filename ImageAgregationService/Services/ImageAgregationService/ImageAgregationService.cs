@@ -196,7 +196,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
         {
             try 
             {
-                List<ImageDto> imageDtos = [];
+                List<ImageDto> imageDtos = new List<ImageDto>();
                 foreach (var imageName in getImagesRequest.Ids)
                 {
                     ImageModel? image = await _imageRepository.GetImageById(imageName);
@@ -205,6 +205,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         _logger.LogError("Image not found! Image name: {Name}", imageName);
                         throw new ImageNotFoundException("Image not found! Image name: " + imageName);
                     }
+                    _logger.LogInformation("Found image: {Name}", JsonConvert.SerializeObject(image));
                     imageDtos.Add(new ImageDto()
                     {
                         Id = image.Id,
