@@ -28,12 +28,12 @@ namespace ImageAgregationService.Repository.ImageRepository
 
         public async Task<ImageModel?> GetImageById(Guid id)
         {
-            return _db.Images.Include(x=>x.Mark).First(x=>x.Id == id);
+            return _db.Images.Include(x=>x.Mark).Include(x=>x.Template).First(x=>x.Id == id);
         }
 
         public IQueryable<ImageModel> GetImages()
         {
-            return _db.Images.Include(x=>x.Mark);
+            return _db.Images.Include(x=>x.Mark).Include(x=>x.Template);
         }
 
         public async Task<bool> Save()
