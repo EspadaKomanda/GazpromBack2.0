@@ -36,7 +36,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly IKeyWordsRepository _keyWordsRepository = keyWordsRepository;
         public List<KeyWordDTO> GetUniqueKeyWords()
         {
-            return _keyWordsRepository.GetUniqueKeyWords().Select(x => new KeyWordDTO() { KeyWord = x.Word }).ToList();
+            return _keyWordsRepository.GetUniqueKeyWords().GroupBy(x => x.Word).Select(x => new KeyWordDTO() { KeyWord = x.Key }).ToList();
         }
         public async Task<string> GetLikedImages()
         {
@@ -348,7 +348,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         });
                     }
                 }
-                return imageDtos.GroupBy(img => img.Name).Select(grp => grp.First()).ToList();
+                return imageDtos;
             }
             catch (System.Exception)
             {
