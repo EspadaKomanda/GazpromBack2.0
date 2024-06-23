@@ -45,8 +45,9 @@ namespace ImageAgregationService.Services.ImageAgregationService
             }
             List<string> imageUrl = GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
             var archive = await CreateArchieve(imageUrl);
+            _logger.LogInformation(JsonConvert.SerializeObject(archive));
             await _s3Service.UploadArchieveToS3Bucket(archive);
-
+            
             return JsonConvert.SerializeObject(await _s3Service.GetArchieveFromS3Bucket());
         }
         private async Task<ArchieveModel> CreateArchieve(List<string> fileUrls)
