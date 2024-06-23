@@ -348,7 +348,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         });
                     }
                 }
-                return imageDtos.Distinct().ToList();
+                return imageDtos.GroupBy(img => img.Name).Select(grp => grp.First()).ToList();
             }
             catch (System.Exception)
             {
