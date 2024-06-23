@@ -7,5 +7,5 @@ public class AccountRefreshTokenRequest
 {
     [Required]
     [FromHeader]
-    public string Authorization { get; set; } = null!;
+    public string RefreshToken { get; set; } = null!;
 }
