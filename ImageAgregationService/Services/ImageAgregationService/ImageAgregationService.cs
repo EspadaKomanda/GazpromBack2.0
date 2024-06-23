@@ -64,14 +64,14 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         foreach (string fileUrl in fileUrls)
                         {
                             byte[] fileData = await httpClient.GetByteArrayAsync(fileUrl);
-
-                            using (var entryStream = archive.CreateEntry(filenames[fileUrls.IndexOf(fileUrl)]+".jpg", CompressionLevel.Optimal).Open())
+                            var fileInArchive = archive.CreateEntry(filenames[fileUrls.IndexOf(fileUrl)]+".jpg", CompressionLevel.Optimal);
+                            using (var entryStream = fileInArchive.Open())
+                            using (var fileToCompressStream = new MemoryStream(fileData))
                             {
-                                await entryStream.WriteAsync(fileData, 0, fileData.Length);
+                                fileToCompressStream.CopyTo(entryStream);
                             }
                         }
                     }
-                    memoryStream.Seek(0, SeekOrigin.Begin);
                     return new ArchieveModel
                     {
                         archieveData = memoryStream.ToArray(),
