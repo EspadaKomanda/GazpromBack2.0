@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
+using ImageAgregationService.Repository.KeyWordsRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 configureLogging();
@@ -77,6 +78,7 @@ builder.Services.AddDbContext<ApplicationContext>(x => {
 builder.Services.AddSingleton<ImageGenerationCommunicator>();
 builder.Services.AddSingleton<ImageProcessorCommunicator>();
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<IKeyWordsRepository, KeyWordsRepository>();
 builder.Services.AddScoped<IMarkRepository, MarkRepository>();
 builder.Services.AddTransient<IS3Service, S3Service>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
