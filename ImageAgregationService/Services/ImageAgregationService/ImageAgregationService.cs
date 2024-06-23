@@ -35,6 +35,14 @@ namespace ImageAgregationService.Services.ImageAgregationService
         {
             var images = _imageRepository.GetImages();
             List<Guid> imageIds = images.Where(x => x.Mark.Name == "liked").Select(x => x.Id).ToList();
+            if(imageIds.Count < 1)
+            {
+                throw new GetImageException("No liked images found!");
+            }
+            if(! await _s3Service.CheckIfBucketExists("archieves"))
+            {
+                await _s3Service.CreateBucket("archieves");
+            }
             List<string> imageUrl = GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
             var archive = await CreateArchieve(imageUrl);
             await _s3Service.UploadArchieveToS3Bucket(archive);

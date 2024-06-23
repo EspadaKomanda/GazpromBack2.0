@@ -91,9 +91,10 @@ namespace ApiGatewayService.Services.ImageAgregationService
         {
             try
             {
+                Guid currentId = Guid.NewGuid();
                 if(await _kafkaService.Produce( Environment.GetEnvironmentVariable("IMAGEREQ_TOPIC") ?? "",
                 new Confluent.Kafka.Message<string, string>(){ 
-                    Key = Guid.NewGuid().ToString(),
+                    Key = currentId.ToString(),
                     Value = JsonConvert.SerializeObject(getImagesRequest),
                     Headers = new Headers(){
                         new Header("method",Encoding.UTF8.GetBytes("getImages")),
@@ -101,7 +102,7 @@ namespace ApiGatewayService.Services.ImageAgregationService
                     }
                 }))
                 {
-                    var imageDto = await _kafkaService.Consume<List<ImageDto>>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", Guid.NewGuid(), "getImages");
+                    var imageDto = await _kafkaService.Consume<List<ImageDto>>(Environment.GetEnvironmentVariable("IMAGERESP_TOPIC") ?? "", currentId, "getImages");
                     _logger.LogInformation("Images fetched successfully, Ids: {ids}", JsonConvert.SerializeObject(getImagesRequest));
                     return imageDto;
                 }

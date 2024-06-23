@@ -28,6 +28,7 @@ namespace ImageAgregationService.Services
             try
             {
                 var buckets =  _templateRepository.GetTemplates();
+                
                 foreach (var bucket in buckets)
                 {
                     if(!await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client,bucket.Guid.ToString()))
