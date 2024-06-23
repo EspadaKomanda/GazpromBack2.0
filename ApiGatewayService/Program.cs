@@ -49,6 +49,21 @@ builder.Services.AddSwaggerGen(c =>
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     }
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.AddSingleton(new ProducerBuilder<string,string>(
@@ -104,6 +119,7 @@ builder.Services.AddAuthorizationBuilder()
     {
         policy.RequireClaim(ClaimTypes.AuthenticationMethod, "Refresh");
     });
+
 builder.Services.AddCors(options => 
 {
     options.AddDefaultPolicy(builder => 
