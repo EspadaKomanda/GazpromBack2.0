@@ -45,13 +45,13 @@ namespace ImageAgregationService.Services.ImageAgregationService
             }
             List<string> imageUrl = GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
             _logger.LogInformation(JsonConvert.SerializeObject(imageUrl));
-            var archive = await CreateArchieve(imageUrl);
+            var archive = await CreateArchieve(imageUrl,images.Where(x => x.Mark.Name == "liked").Select(x => x.Name).ToList());
             _logger.LogInformation(JsonConvert.SerializeObject(archive));
             await _s3Service.UploadArchieveToS3Bucket(archive);
 
             return JsonConvert.SerializeObject(await _s3Service.GetArchieveFromS3Bucket());
         }
-        private async Task<ArchieveModel> CreateArchieve(List<string> fileUrls)
+        private async Task<ArchieveModel> CreateArchieve(List<string> fileUrls, List<string> filenames)
         {
             try
             {
@@ -63,10 +63,9 @@ namespace ImageAgregationService.Services.ImageAgregationService
                     {
                         foreach (string fileUrl in fileUrls)
                         {
-                            string fileName = Path.GetFileName(fileUrl);
                             byte[] fileData = await httpClient.GetByteArrayAsync(fileUrl);
 
-                            using (var entryStream = archive.CreateEntry(fileName, CompressionLevel.Optimal).Open())
+                            using (var entryStream = archive.CreateEntry(filenames[fileUrls.IndexOf(fileUrl)]+".jpg", CompressionLevel.Optimal).Open())
                             {
                                 await entryStream.WriteAsync(fileData, 0, fileData.Length);
                             }
