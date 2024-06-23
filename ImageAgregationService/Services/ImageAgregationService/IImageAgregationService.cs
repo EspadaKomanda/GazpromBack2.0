@@ -9,5 +9,9 @@ namespace ImageAgregationService.Services.ImageAgregationService
         Task<List<ImageDto>> GetImages(GetImagesKafkaRequest getImagesRequest);
         Task<string> GetLikedImages();
         Task<string> GetSpecificImages(GetImagesKafkaRequest getImagesRequest);
+        Task<int> GetPagesCount();
+        Task<List<ImageDto>> GetImagesPage(GetPage page);
+        List<KeyWordDTO> GetUniqueKeyWords();
+        List<ImageDto> GetImagesByKeywords(GetImagesByKeywords getImagesByKeywords);
     }
 }

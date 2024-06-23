@@ -91,4 +91,108 @@ public class ImageAgregationController(IImageAgregationService imageAgregationSe
             return StatusCode(500);
         }
     }
+    [HttpGet]
+    [Route("getPagesCount")]
+    public async Task<ActionResult<int>> GetPagesCount()
+    {
+        try
+        {
+            var result = await _imageAgregationSerivce.GetPagesCount();
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
+    [HttpPost]
+    [Route("getSpecificImages")]
+    public async Task<ActionResult<string>> GetSpecificImages([FromBody] GetImagesKafkaRequest model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var result = await _imageAgregationSerivce.GetSpecificImages(model);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
+    [HttpPost]
+    [Route("getImagesPage")]
+    public async Task<ActionResult<List<ImageDto>>> GetImagesPage([FromBody] GetPage model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }        
+        try
+        {
+            var result = await _imageAgregationSerivce.GetImagesPage(model);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }  
+    [HttpGet]
+    [Route("getUniqueKeyWords")]
+    public async Task<ActionResult<List<KeyWordDTO>>> GetUniqueKeyWords()
+    {
+        try
+        {
+            var result = await _imageAgregationSerivce.GetUniqueKeyWords();
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
+    [HttpPost]
+    [Route("getImagesByKeywords")]
+    public async Task<ActionResult<List<ImageDto>>> GetImagesByKeywords([FromBody] GetImagesByKeywords model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }        
+        try
+        {
+            var result = await _imageAgregationSerivce.GetImagesByKeywords(model);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            if (e is GenerateImageException)
+            {
+                return BadRequest(e.Message);
+            }
+            return StatusCode(500);
+        }
+    }
+
 }

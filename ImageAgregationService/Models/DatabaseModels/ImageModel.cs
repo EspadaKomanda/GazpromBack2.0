@@ -19,5 +19,6 @@ namespace ImageAgregationService.Models
         public Guid MarkId {get;set;}
         [ForeignKey("MarkId")]
         public MarkModel Mark {get;set;} = null!;
+        public ICollection<KeyWordModel> KeyWords { get; set; }
     }
 }

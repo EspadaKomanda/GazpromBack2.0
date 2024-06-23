@@ -10,6 +10,7 @@ namespace ImageAgregationService.Database
         public DbSet<ImageModel> Images { get; set; } = null!;
         public DbSet<TemplateModel> Templates {get;set;} = null!;
         public DbSet<MarkModel> Marks {get;set;} = null!;
+        public DbSet<KeyWordModel> KeyWords {get;set;} = null!;
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options, ConfigReader configReader) : base(options)
         {

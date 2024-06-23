@@ -7,5 +7,6 @@ namespace ImageAgregationService.Models.DTO
         public string Url {get;set;} = null!;
         public MarkDto Mark {get;set;} = null!;
         public TemplateDto Template {get;set;} = null!;
+        public List<KeyWordDTO> KeyWords {get;set;}
     }
 }

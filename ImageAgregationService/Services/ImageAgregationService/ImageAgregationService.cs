@@ -8,6 +8,7 @@ using ImageAgregationService.Models.DTO;
 using ImageAgregationService.Models.RequestModels;
 using ImageAgregationService.Repository;
 using ImageAgregationService.Repository.ImageRepository;
+using ImageAgregationService.Repository.KeyWordsRepository;
 using ImageAgregationService.Singletones.Communicators;
 using Imagegenerator;
 using ImageProcessor;
@@ -22,7 +23,8 @@ namespace ImageAgregationService.Services.ImageAgregationService
     IS3Service s3Service,
     ImageGenerationCommunicator imageGenerationCommunicator,
     ImageProcessorCommunicator imageProcessorCommunicator,
-    IDistributedCache cache) : IImageAgregationService
+    IDistributedCache cache,
+    IKeyWordsRepository keyWordsRepository) : IImageAgregationService
     {
         private readonly IImageRepository _imageRepository = imageRepository;
         private readonly ITemplateRepository _templateRepository = templateRepository;
@@ -31,6 +33,11 @@ namespace ImageAgregationService.Services.ImageAgregationService
         private readonly ImageGenerationCommunicator _imageGenerationCommunicator = imageGenerationCommunicator;
         private readonly ImageProcessorCommunicator _imageProcessorCommunicator = imageProcessorCommunicator;
         private readonly IDistributedCache _cache = cache;
+        private readonly IKeyWordsRepository _keyWordsRepository = keyWordsRepository;
+        public List<KeyWordDTO> GetUniqueKeyWords()
+        {
+            return _keyWordsRepository.GetUniqueKeyWords().Select(x => new KeyWordDTO() { KeyWord = x.Word }).ToList();
+        }
         public async Task<string> GetLikedImages()
         {
             var images = _imageRepository.GetImages();
@@ -132,9 +139,12 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         _logger.LogError("Template not found!");
                         throw new TemplateNotFoundException("Template not found!");
                     }
+                    var KeyWords = ExtractKeywords(generateImageRequest.Text);
+
                     imageModel.Template = currentTemplate;
                     imageModel.Mark = new MarkModel(){ Name = "none"};
                     imageModel.Prompt = prompt;
+                    imageModel.KeyWords = KeyWords.Select(x=> new KeyWordModel(){ Word = x}).ToList();
                     await _imageRepository.CreateImage(imageModel);
                     _logger.LogInformation("Saved image model: {Name}", imageName);
                     ImageDto filalImage = new()
@@ -149,7 +159,9 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         Template = new TemplateDto()
                         {
                             Name = imageModel.Template.Name,
-                            DefaultPrompt = imageModel.Template.DefaultPrompt
+                            DefaultPrompt = imageModel.Template.DefaultPrompt,
+                            RoleId = imageModel.Template.RoleId,
+                            RoleName = imageModel.Template.RoleName
                         }
                     };
                     await _cache.SetStringAsync(generateImageRequest.TemplateName+generateImageRequest.Text, JsonConvert.SerializeObject(filalImage));
@@ -175,6 +187,22 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 throw new GenerateImageException("Error generating image",e);
                 
             }
+        }
+        private List<string> ExtractKeywords(string input)
+        {
+            List<string> keywords = new List<string>();
+
+            string[] words = input.Split(' ');
+
+            foreach (string word in words)
+            {
+                if (word.StartsWith("#"))
+                {
+                    keywords.Add(word.Trim('#'));
+                }
+            }
+
+            return keywords;
         }
         private async Task<GenerateImageResponse> SendGenerateImageRequest(string prompt)
         {
@@ -218,7 +246,44 @@ namespace ImageAgregationService.Services.ImageAgregationService
                 throw new GeneratePromptException("Failed to generate prompt", ex);
             }
         }
-
+        public async Task<List<ImageDto>> GetImagesPage(GetPage page)
+        {
+            try
+            {
+                List<ImageDto> imageDtos = new List<ImageDto>();
+                foreach (var image in _imageRepository.GetImages().Skip((page.Page - 1) * 24).Take(24))
+                {
+                    
+                    imageDtos.Add(new ImageDto()
+                    {
+                        Id = image.Id,
+                        Name = image.Name,
+                        Url = image.Url,
+                        Mark = new MarkDto() { Name = image.Mark.Name },
+                        Template = new TemplateDto() { Name = image.Template.Name, DefaultPrompt = image.Template.DefaultPrompt, RoleId = image.Template.RoleId, RoleName = image.Template.Name },
+                        KeyWords = image.KeyWords.Select(x=> new KeyWordDTO() { KeyWord = x.Word }).ToList()
+                    });
+                }
+                return imageDtos;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get images!");
+                throw new GetImageException("Failed to get images!", ex);
+            }
+        }
+        public async Task<int> GetPagesCount()
+        {
+            try
+            {
+                return (int)Math.Ceiling((double)_imageRepository.GetImages().Count()/ 24);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get pages count!");
+                throw new GetImageException("Failed to get pages count!", ex);
+            }
+        }
         public async Task<List<ImageDto>> GetImages(GetImagesKafkaRequest getImagesRequest)
         {
             try 
@@ -244,8 +309,12 @@ namespace ImageAgregationService.Services.ImageAgregationService
                         },
                         Template = new TemplateDto()
                         {
-                            Name = image.Template.Name
-                        }
+                            Name = image.Template.Name,
+                            DefaultPrompt = image.Template.DefaultPrompt,
+                            RoleId = image.Template.RoleId,
+                            RoleName = image.Template.Name
+                        },
+                        KeyWords = image.KeyWords.Select(x => new KeyWordDTO() { KeyWord = x.Word }).ToList()
                     });
                 }
                 return imageDtos;
@@ -254,6 +323,37 @@ namespace ImageAgregationService.Services.ImageAgregationService
             {
                 _logger.LogError(ex, "Failed to get images!");
                 throw new GetImagesException("Failed to get images!", ex);
+            }
+        }
+
+        public List<ImageDto> GetImagesByKeywords(GetImagesByKeywords getImagesByKeywords)
+        {
+            try
+            {
+                var images = _imageRepository.GetImages();
+                List<ImageDto> imageDtos = new List<ImageDto>();
+                foreach (var image in images)
+                {
+                    if(image.KeyWords.Any(x=>getImagesByKeywords.KeyWords.Any(y=>y.KeyWord==x.Word)))
+                    {
+                        imageDtos.Add(new ImageDto()
+                        {
+                            Id = image.Id,
+                            Name = image.Name,
+                            Url = image.Url,
+                            Mark = new MarkDto() { Name = image.Mark.Name },
+                            Template = new TemplateDto() { Name = image.Template.Name, DefaultPrompt = image.Template.DefaultPrompt, RoleId = image.Template.RoleId, RoleName = image.Template.Name },
+                            KeyWords = image.KeyWords.Select(x => new KeyWordDTO() { KeyWord = x.Word }).ToList()
+                            
+                        });
+                    }
+                }
+                return imageDtos;
+            }
+            catch (System.Exception)
+            {
+
+                throw;
             }
         }
     }

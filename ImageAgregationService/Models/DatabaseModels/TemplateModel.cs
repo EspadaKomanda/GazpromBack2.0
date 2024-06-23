@@ -12,5 +12,7 @@ namespace ImageAgregationService.Models
         public string Name {get;set;} = null!;
         public string DefaultPrompt {get;set;} = null!;
         public bool Availible {get;set;} = true;
+        public long RoleId {get;set;}
+        public string RoleName {get;set;} = null!;
     }
 }

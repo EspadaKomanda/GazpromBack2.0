@@ -86,6 +86,174 @@ public class KafkaService
                     var methodString = Encoding.UTF8.GetString(headerBytes.GetValueBytes());
                     switch (methodString)
                     {
+                        case "getImagesByKeywords":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(_imageAgregationService.GetImagesByKeywords(JsonConvert.DeserializeObject<GetImagesByKeywords>(result.Message.Value))),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getImagesByKeywords")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting images by keywords"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getImagesByKeywords")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")), 
+                                        new Header("error", Encoding.UTF8.GetBytes(e.Message))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }
+                            break;
+                        case "getUniqueKeywords":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(_imageAgregationService.GetUniqueKeyWords()),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getUniqueKeywords")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting unique keywords"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getUniqueKeywords")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")), 
+                                        new Header("error", Encoding.UTF8.GetBytes(e.Message))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }
+
+                            break;
+                        case "getImagesPage":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(await _imageAgregationService.GetImagesPage(JsonConvert.DeserializeObject<GetPage>(result.Message.Value))),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getImagesPage")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting images page"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getImagesPage")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")), 
+                                        new Header("error", Encoding.UTF8.GetBytes(e.Message))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }
+                            break;
+                        case "getPagesCount":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(await _imageAgregationService.GetPagesCount()),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getPagesCount")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting pages count"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getPagesCount")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")), 
+                                        new Header("error", Encoding.UTF8.GetBytes(e.Message))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }
+                            break;
+                        case "getSpecificImages":
+                            try
+                            {
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(await _imageAgregationService.GetSpecificImages(JsonConvert.DeserializeObject<GetImagesKafkaRequest>(result.Message.Value))),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getSpecificImages")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>() { Key = result.Message.Key,
+                                Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting specific images"}),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getSpecificImages")), 
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")), 
+                                    new Header("error", Encoding.UTF8.GetBytes(e.Message))
+                                ]});
+                                _consumer.Commit(result);
+                            }
+                            break;
                         case "getLikedImages":
                             try
                             {

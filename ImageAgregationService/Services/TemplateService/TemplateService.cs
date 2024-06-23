@@ -41,7 +41,10 @@ namespace ImageAgregationService.Services.TemplateService
                 {
                     Guid = guid,
                     Name = templateDto.Name,
-                    DefaultPrompt = templateDto.DefaultPrompt
+                    DefaultPrompt = templateDto.DefaultPrompt,
+                    RoleId = templateDto.RoleId,
+                    RoleName = templateDto.RoleName
+
                 });
             }
             catch (Exception ex)
@@ -78,7 +81,9 @@ namespace ImageAgregationService.Services.TemplateService
                         templateDtos.Add(new TemplateDto
                         {
                             Name = template.Name,
-                            DefaultPrompt = template.DefaultPrompt
+                            DefaultPrompt = template.DefaultPrompt,
+                            RoleId = template.RoleId,
+                            RoleName = template.RoleName
                         });
                     }
                 }
@@ -111,7 +116,9 @@ namespace ImageAgregationService.Services.TemplateService
                     return new TemplateDto
                     {
                         Name = template.Name,
-                        DefaultPrompt = template.DefaultPrompt
+                        DefaultPrompt = template.DefaultPrompt,
+                        RoleId = template.RoleId,
+                        RoleName = template.RoleName
                     };
                 }
                 else

@@ -8,5 +8,11 @@ namespace ApiGatewayService.Services.ImageAgregationService
         Task<ImageDto> GenerateImage(GenerateImageKafkaRequest generateImageKafkaRequest);
         Task<List<ImageDto>> GetImageDto(GetImagesKafkaRequest getImagesRequest);
         Task<string> GetLikedImages();
+        Task<string> GetSpecificImages(GetImagesKafkaRequest getImagesRequest);
+        Task<int> GetPagesCount();
+        Task<List<ImageDto>> GetImagesPage(GetPage page);
+        Task<List<KeyWordDTO>> GetUniqueKeyWords();
+        Task<List<ImageDto>> GetImagesByKeywords(GetImagesByKeywords getImagesByKeywords);
+    
     }
 }
