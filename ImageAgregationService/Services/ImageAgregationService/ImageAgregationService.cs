@@ -71,6 +71,7 @@ namespace ImageAgregationService.Services.ImageAgregationService
                             }
                         }
                     }
+                    memoryStream.Seek(0, SeekOrigin.Begin);
                     return new ArchieveModel
                     {
                         archieveData = memoryStream.ToArray(),
