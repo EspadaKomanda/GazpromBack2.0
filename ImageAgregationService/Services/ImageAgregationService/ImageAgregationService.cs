@@ -72,15 +72,15 @@ namespace ImageAgregationService.Services.ImageAgregationService
                             }
                         }
                     }
-                    return new ArchieveModel
-                    {
-                        archieveData = memoryStream.ToArray(),
-                        archieveName="LikedImages",
-                        archieveType="application/zip"
-
-                    };
+                   
                 }
+                return new ArchieveModel
+                {
+                    archieveData = memoryStream.ToArray(),
+                    archieveName="LikedImages",
+                    archieveType="application/zip"
 
+                };
             }
             catch (Exception ex)
             {
