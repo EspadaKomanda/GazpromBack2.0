@@ -52,7 +52,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpGet]
     [Route("refreshToken")]
     [Authorize(Policy = "Refresh")]
-    public async Task<ActionResult<AccountTokensResponse>> RefreshToken([FromHeader] AccountRefreshTokenRequest model)
+    public async Task<ActionResult<AccountTokensResponse>> RefreshToken(AccountRefreshTokenRequest model)
     {
         if (!ModelState.IsValid)
         {
