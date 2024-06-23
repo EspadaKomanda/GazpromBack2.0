@@ -80,7 +80,7 @@ namespace ImageAgregationService.Services
         {
             try
             {
-                var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = "archieves", Key = "LikedImages", Expires = DateTime.Now.AddMinutes(10), Protocol = Protocol.HTTP});
+                var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = "archieves", Key = "LikedImages", Expires = DateTime.Now.AddYears(10), Protocol = Protocol.HTTP});
                 _logger.LogInformation($"Archieve URL: {response}");
                 return response;
             }
@@ -200,7 +200,7 @@ namespace ImageAgregationService.Services
                 GetObjectMetadataResponse metadataResponse = await _s3Client.GetObjectMetadataAsync(bucketName, fileName);
                 if(metadataResponse.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = bucketName, Key = fileName, Expires = DateTime.Now.AddMinutes(10), Protocol = Protocol.HTTP});
+                    var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = bucketName, Key = fileName, Expires = DateTime.Now.AddYears(10), Protocol = Protocol.HTTP});
                     _logger.LogInformation($"Uri for image {fileName} aquired from S3 bucket {bucketName}!");
                     return new ImageModel
                     {
