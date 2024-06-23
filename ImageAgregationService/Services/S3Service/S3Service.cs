@@ -11,7 +11,7 @@ using Imagegenerator;
 using ImageProcessor;
 
 namespace ImageAgregationService.Services
-{
+{ 
     public class S3Service : IS3Service
     {
         private readonly IAmazonS3 _s3Client;

@@ -101,7 +101,7 @@ public class AuthService : IAuthService
                 }
             }))
             {
-                var loginResponse = await _kafkaService.Consume<Tuple<bool, string>>(Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "", messageId, "validateRefreshToken");
+                var loginResponse = await _kafkaService.Consume<Tuple<bool, string>>(Environment.GetEnvironmentVariable("AUTHRESP_TOPIC") ?? "", messageId, "validateRefresh");
                 _logger.LogInformation("Validate refresh token successful, User: {User}", JsonConvert.SerializeObject(request));
                 return loginResponse;
             }
