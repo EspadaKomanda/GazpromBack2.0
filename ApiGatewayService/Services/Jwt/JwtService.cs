@@ -92,7 +92,7 @@ public class JwtService : IJwtService
         {
             return new (false, "");
         }
-        var result = await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { RefreshToken = token });
+        var result = await _authService.ValidateRefreshToken(new AccountRefreshTokenRequest { Authorization = token });
 
         if (!result.Item1)
         {

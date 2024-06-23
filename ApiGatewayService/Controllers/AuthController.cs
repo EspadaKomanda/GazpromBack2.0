@@ -51,7 +51,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// <response code="401">Неверный refresh токен</response>
     [HttpGet]
     [Route("refreshToken")]
-    public async Task<ActionResult<AccountTokensResponse>> RefreshToken([FromQuery] AccountRefreshTokenRequest model)
+    [Authorize(Policy = "Refresh")]
+    public async Task<ActionResult<AccountTokensResponse>> RefreshToken([FromHeader] AccountRefreshTokenRequest model)
     {
         if (!ModelState.IsValid)
         {
