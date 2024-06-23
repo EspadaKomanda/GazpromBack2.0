@@ -8,5 +8,6 @@ namespace ImageAgregationService.Services.ImageAgregationService
         Task<ImageDto> GetImage(string key,GenerateImageKafkaRequest generateImageRequest);
         Task<List<ImageDto>> GetImages(GetImagesKafkaRequest getImagesRequest);
         Task<string> GetLikedImages();
+        Task<string> GetSpecificImages(GetImagesKafkaRequest getImagesRequest);
     }
 }

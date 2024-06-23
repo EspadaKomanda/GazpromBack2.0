@@ -13,6 +13,7 @@ namespace ImageAgregationService.Services
         Task<ImageModel> GetImageFromS3Bucket(string fileName, string bucketName);
         Task<bool> UploadArchieveToS3Bucket(ArchieveModel archieveModel);
         Task<string> GetArchieveFromS3Bucket();
+        Task<string> GetArchieveFromS3Bucket(string archieveName);
         Task<bool> CheckIfBucketExists(string bucketName);
         Task<bool> DeleteBucket(string bucketName);
         Task<bool> CreateBucket(string bucketName);

@@ -43,13 +43,30 @@ namespace ImageAgregationService.Services.ImageAgregationService
             {
                 await _s3Service.CreateBucket("archieves");
             }
-            List<string> imageUrl = GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
+            List<string> imageUrl =  GetImages(new GetImagesKafkaRequest() { Ids = imageIds }).Result.Select(x => x.Url).ToList();
             _logger.LogInformation(JsonConvert.SerializeObject(imageUrl));
             var archive = await CreateArchieve(imageUrl,images.Where(x => x.Mark.Name == "liked").Select(x => x.Name).ToList());
             _logger.LogInformation(JsonConvert.SerializeObject(archive));
             await _s3Service.UploadArchieveToS3Bucket(archive);
 
             return JsonConvert.SerializeObject(await _s3Service.GetArchieveFromS3Bucket());
+        }
+        public async Task<string> GetSpecificImages(GetImagesKafkaRequest getImagesRequest)
+        {
+            try
+            {
+                var images = await GetImages(new GetImagesKafkaRequest() { Ids = getImagesRequest.Ids });
+                List<string> imageUrl = images.Select(x => x.Url).ToList();
+                List<string> filenames = images.Select(x => x.Name).ToList();
+                var archive = await CreateArchieve(imageUrl,filenames);
+                archive.archieveName = Guid.NewGuid().ToString();
+                await _s3Service.UploadArchieveToS3Bucket(archive);
+                return JsonConvert.SerializeObject(await _s3Service.GetArchieveFromS3Bucket(archive.archieveName));
+            }
+            catch (Exception ex)
+            {
+                throw new GetImageException(ex.Message);
+            }
         }
         private async Task<ArchieveModel> CreateArchieve(List<string> fileUrls, List<string> filenames)
         {

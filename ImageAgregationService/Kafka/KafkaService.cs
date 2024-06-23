@@ -120,6 +120,41 @@ public class KafkaService
                                 _consumer.Commit(result);
                             }    
                             break;
+                        case "getSpecifiedImages":
+                            try
+                            {
+                                var message = JsonConvert.DeserializeObject<GetImagesKafkaRequest>(result.Message.Value) ?? throw new NullReferenceException("message is null");
+                                if(await Produce(_imageResponseTopic,new Message<string, string>(){ Key = result.Message.Key, 
+                                Value = JsonConvert.SerializeObject(await _imageAgregationService.GetSpecificImages(message)),
+                                Headers = [
+                                    new Header("method", Encoding.UTF8.GetBytes("getSpecifiedImages")),
+                                    new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService"))
+                                ]}))
+                                {
+                                    _logger.LogInformation("Successfully sent message {Key}",result.Message.Key);
+                                    _consumer.Commit(result);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                if(e is MyKafkaException)
+                                {
+                                    _logger.LogError(e,"Error sending message");
+                                    throw;
+                                }
+                                _ = await Produce(_imageResponseTopic, new Message<string, string>()
+                                {
+                                    Key = result.Message.Key,
+                                    Value = JsonConvert.SerializeObject(new MessageResponse(){ Message = "Error getting specified images"}),
+                                    Headers = [
+                                        new Header("method", Encoding.UTF8.GetBytes("getSpecifiedImages")), 
+                                        new Header("sender", Encoding.UTF8.GetBytes("imageAgregationService")),
+                                        new Header("error", Encoding.UTF8.GetBytes("Error getting specified images"))
+                                    ]
+                                });
+                                _consumer.Commit(result);
+                            }
+                            break;
                         case "generateImage":
                             try
                             {

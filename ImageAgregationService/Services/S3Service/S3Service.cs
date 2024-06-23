@@ -90,6 +90,20 @@ namespace ImageAgregationService.Services
                 throw new GetImageException("Failed to get archieve from S3 bucket!", ex);
             }
         }
+        public async Task<string> GetArchieveFromS3Bucket(string archieveName)
+        {
+            try
+            {
+                var response =  _s3Client.GetPreSignedURL(new GetPreSignedUrlRequest(){ BucketName = "archieves", Key = archieveName, Expires = DateTime.Now.AddYears(10), Protocol = Protocol.HTTP});
+                _logger.LogInformation($"Archieve URL: {response}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get archieve from S3 bucket!");
+                throw new GetImageException("Failed to get archieve from S3 bucket!", ex);
+            }
+        }
         public async Task<bool> UploadArchieveToS3Bucket(ArchieveModel archieveModel)
         {
             try
@@ -129,6 +143,7 @@ namespace ImageAgregationService.Services
                 throw new UploadImageException("Failed to upload archieve to S3 bucket!", ex);
             }
         }
+       
         public async Task<bool> CheckIfBucketExists(string bucketName)
         {
             return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
